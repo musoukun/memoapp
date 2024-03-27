@@ -83,6 +83,9 @@ const Sidebar = () => {
 						</IconButton>
 					</Box>
 				</ListItemButton>
+				<ListItemButton>
+					<Typography>📝仮置きのメモ</Typography>
+				</ListItemButton>
 			</List>
 		</Drawer>
 	);

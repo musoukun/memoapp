@@ -39,11 +39,17 @@ gem 'jwt' #追加
 gem 'solargraph'  #追加
 gem "ruby-debug-ide" #追加
 gem "debase" #追加
-
+gem 'devise' #追加
+gem 'devise-jwt' #追加
 group :development, :test do
   # See https://guides.rubyonrails.org/debugging_rails_applications.html#debugging-with-the-debug-gem
   gem "debug", platforms: %i[ mri windows ]
+  gem 'prettier_print' #追加
+  gem 'syntax_tree' #追加
+  gem 'syntax_tree-haml' #追加
+  gem 'syntax_tree-rbs' #追加
 end
+
 
 group :development do
   # Speed up commands on slow machines / big apps [https://github.com/rails/spring]

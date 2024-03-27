@@ -1,6 +1,5 @@
 module Api
-	module V1
-		module Auth
+	module Auth
 		class AuthController < ApplicationController
 
 			def verify_token
@@ -34,7 +33,6 @@ module Api
 			def render_unauthorized
 				render json: { errors: 'Unauthorized' }, status: :unauthorized
 			end
-		end
 		end
 	end
 end

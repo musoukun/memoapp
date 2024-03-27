@@ -1,7 +1,7 @@
 import axios, { AxiosResponse } from "axios";
 import queryString from "query-string";
 
-const BASE_URL = "http://localhost:3000/api/v1";
+const BASE_URL = "http://localhost:3000/api";
 const getToken = (): string | null => localStorage.getItem("token");
 
 const axiosClient = axios.create({

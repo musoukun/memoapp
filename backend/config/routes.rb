@@ -9,13 +9,12 @@ Rails.application.routes.draw do
   # root "posts#index"
 
   namespace :api do
-    namespace :v1 do
+    post '/memo', to: 'memo#create'
       namespace :auth do
         post '/register', to: 'registrations#create'
         post '/login', to: 'sessions#create'
         post '/verify-token', to: 'auth#verify_token'
       end
-    end
   end
   
 end
