@@ -1,0 +1,74 @@
+current directory: D:/develop/markdown/backend/vendor/bundle/ruby/3.2.0/gems/debase-0.2.4.1/ext
+C:/Ruby32-x64/bin/ruby.exe extconf.rb
+checking for vm_core.h... no
+checking for vm_core.h... no
+**************************************************************************
+No source for ruby-3.2.2-p53 (revision e51014f9c05aa65cbf203442d37fef7c12390015) provided with
+debase-ruby_core_source gem. Falling back to ruby-3.2.0-p0.
+**************************************************************************
+checking for vm_core.h... yes
+checking for iseq.h... yes
+checking for version.h... yes
+checking for vm_core.h... yes
+checking for vm_insnhelper.h... no
+Makefile creation failed
+*************************************************************
+
+  NOTE: If your headers were not found, try passing
+        --with-ruby-include=PATH_TO_HEADERS      
+
+*************************************************************
+
+*** extconf.rb failed ***
+Could not create Makefile due to some reason, probably lack of necessary
+libraries and/or headers.  Check the mkmf.log file for more details.  You may
+need configuration options.
+
+Provided configuration options:
+	--with-opt-dir
+	--without-opt-dir
+	--with-opt-include
+	--without-opt-include=${opt-dir}/include
+	--with-opt-lib
+	--without-opt-lib=${opt-dir}/lib
+	--with-make-prog
+	--without-make-prog
+	--srcdir=.
+	--curdir
+	--ruby=C:/Ruby32-x64/bin/$(RUBY_BASE_NAME)
+	--with-ruby-dir
+	--without-ruby-dir
+	--with-ruby-include
+	--without-ruby-include=${ruby-dir}/include
+	--with-ruby-lib
+	--without-ruby-lib=${ruby-dir}/lib
+	--with-vm_core-dir
+	--without-vm_core-dir
+	--with-vm_core-include
+	--without-vm_core-include=${vm_core-dir}/include
+	--with-vm_core-lib
+	--without-vm_core-lib=${vm_core-dir}/lib
+	--with-iseq-dir
+	--without-iseq-dir
+	--with-iseq-include
+	--without-iseq-include=${iseq-dir}/include
+	--with-iseq-lib
+	--without-iseq-lib=${iseq-dir}/lib
+	--with-version-dir
+	--without-version-dir
+	--with-version-include
+	--without-version-include=${version-dir}/include
+	--with-version-lib
+	--without-version-lib=${version-dir}/lib
+	--with-vm_insnhelper-dir
+	--without-vm_insnhelper-dir
+	--with-vm_insnhelper-include
+	--without-vm_insnhelper-include=${vm_insnhelper-dir}/include
+	--with-vm_insnhelper-lib
+	--without-vm_insnhelper-lib=${vm_insnhelper-dir}/lib
+
+To see why this extension failed to compile, please check the mkmf.log which can be found here:
+
+  D:/develop/markdown/backend/vendor/bundle/ruby/3.2.0/extensions/x64-mingw-ucrt/3.2.0/debase-0.2.4.1/mkmf.log
+
+extconf failed, exit code 1

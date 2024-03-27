@@ -1,0 +1,18 @@
+current directory: D:/develop/markdown/backend/vendor/bundle/ruby/3.2.0/gems/nio4r-2.7.1/ext/nio4r
+C:/Ruby32-x64/bin/ruby.exe extconf.rb
+
+current directory: D:/develop/markdown/backend/vendor/bundle/ruby/3.2.0/gems/nio4r-2.7.1/ext/nio4r
+make DESTDIR\= sitearchdir\=./.gem.20240327-19632-zscm0p sitelibdir\=./.gem.20240327-19632-zscm0p clean
+make: *** ターゲット 'clean' を make するルールがありません.  中止.
+
+current directory: D:/develop/markdown/backend/vendor/bundle/ruby/3.2.0/gems/nio4r-2.7.1/ext/nio4r
+make DESTDIR\= sitearchdir\=./.gem.20240327-19632-zscm0p sitelibdir\=./.gem.20240327-19632-zscm0p
+make: 'all' に対して行うべき事はありません.
+
+current directory: D:/develop/markdown/backend/vendor/bundle/ruby/3.2.0/gems/nio4r-2.7.1/ext/nio4r
+make DESTDIR\= sitearchdir\=./.gem.20240327-19632-zscm0p sitelibdir\=./.gem.20240327-19632-zscm0p install
+make: 'install' に対して行うべき事はありません.
+
+current directory: D:/develop/markdown/backend/vendor/bundle/ruby/3.2.0/gems/nio4r-2.7.1/ext/nio4r
+make DESTDIR\= sitearchdir\=./.gem.20240327-19632-zscm0p sitelibdir\=./.gem.20240327-19632-zscm0p clean
+make: *** ターゲット 'clean' を make するルールがありません.  中止.
