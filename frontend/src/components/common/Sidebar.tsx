@@ -9,7 +9,11 @@ import { useRecoilState, useRecoilValue } from "recoil";
 import { userStateAtom } from "../../state/atoms/userAtoms";
 import { Link } from "react-router-dom";
 import memoApi from "../../api/memoApi";
-import { memosStateAtom } from "../../state/atoms/memoAtoms";
+import {
+	createMemoflgAtom,
+	memosStateAtom,
+	updateMemoflgAtom,
+} from "../../state/atoms/memoAtoms";
 
 const Sidebar = () => {
 	const [activeIndex, setActiveIndex] = useState(0); // アクティブなメモのインデックスを保持するステート
@@ -17,6 +21,11 @@ const Sidebar = () => {
 	const user = useRecoilValue(userStateAtom);
 	const [memos, setMemos] = useRecoilState(memosStateAtom);
 	const { id } = useParams(); // メモのIDを取得 useParamsはパラメータを取得するためのフック
+
+	// メモが追加されたことを確認するState
+	const [createMemoflg, setCreateMemoflg] = useRecoilState(createMemoflgAtom);
+	// メモが更新されたことを確認するState
+	const [updateMemoflg, setUpdateMemoflg] = useRecoilState(updateMemoflgAtom);
 
 	const logout = () => {
 		localStorage.removeItem("token");
@@ -30,12 +39,14 @@ const Sidebar = () => {
 				const res = await memoApi.getAll();
 				console.log(res.data);
 				setMemos(res.data);
+				setCreateMemoflg(false); // メモが追加されたことを確認したらフラグをfalseにする
+				setUpdateMemoflg(false); // メモが更新されたことを確認したらフラグをfalseにする
 			} catch (err: any) {
 				alert(err.status + ": " + err.statusText);
 			}
 		};
 		getMemos();
-	}, [setMemos]);
+	}, [setMemos, createMemoflg, updateMemoflg]); // createMemoflg,updateMemoflgが変更されたときにメモ一覧を再取得
 
 	useEffect(() => {
 		// メモのIDが変更されたときにアクティブなメモのインデックスを更新
