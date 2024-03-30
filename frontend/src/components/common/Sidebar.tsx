@@ -38,93 +38,96 @@ const Sidebar = () => {
 	}, [setMemos]);
 
 	useEffect(() => {
-		const activeIndex = memos.findIndex((item: any) => item.id === id);
-		setActiveIndex(activeIndex);
+		// メモのIDが変更されたときにアクティブなメモのインデックスを更新
+		const index = memos.findIndex((memo: any) => memo.id === id);
+		setActiveIndex(index);
 	}, [navigate]);
 
 	return (
-		<Drawer
-			container={window.document.body}
-			variant="permanent"
-			open={true}
-			sx={{ width: 250, height: "100vh" }}
-		>
-			<List
-				sx={{
-					width: 250,
-					height: "100vh",
-					backgroundColor: assets.colors.dark, // ブラウザのダークモードに合わせて自動で変更したい
-				}}
+		<>
+			<Drawer
+				container={window.document.body}
+				variant="permanent"
+				open={true}
+				sx={{ width: 250, height: "100vh" }}
 			>
-				<ListItemButton
-					component={Link}
-					to="/memo/d1a54b80-9823-4090-aaa1-deb59df09be5"
+				<List
+					sx={{
+						width: 250,
+						height: "100vh",
+						backgroundColor: assets.colors.dark, // ブラウザのダークモードに合わせて自動で変更したい
+					}}
 				>
-					<Box
-						sx={{
-							width: "100%",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "space-between",
-						}}
-					>
-						<Typography variant="body2" fontWeight="700">
-							{user.username}
-						</Typography>
-						<IconButton onClick={logout}>
-							<LogoutOutlined />
-						</IconButton>
-					</Box>
-				</ListItemButton>
-				<Box sx={{ paddingTop: "10px" }}></Box>
-				<ListItemButton>
-					<Box
-						sx={{
-							width: "100%",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "space-between",
-						}}
-					>
-						<Typography variant="body2" fontWeight="700">
-							お気に入り
-						</Typography>
-					</Box>
-				</ListItemButton>
-				<Box sx={{ paddingTop: "10px" }}></Box>
-				<ListItemButton>
-					<Box
-						sx={{
-							width: "100%",
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "space-between",
-						}}
-					>
-						<Typography variant="body2" fontWeight="700">
-							プライベート
-						</Typography>
-						<IconButton>
-							<AddBoxOutlined fontSize="small" />
-						</IconButton>
-					</Box>
-				</ListItemButton>
-				{memos.map((item: any, index: any) => (
 					<ListItemButton
-						sx={{ pl: "20px" }}
 						component={Link}
-						to={`/memo/${item.id}`}
-						key={item.id}
-						selected={activeIndex === index}
-						// selected={true}
+						to="/memo/d1a54b80-9823-4090-aaa1-deb59df09be5"
 					>
-						<Typography>
-							{item.icon} {item.title}
-						</Typography>
+						<Box
+							sx={{
+								width: "100%",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "space-between",
+							}}
+						>
+							<Typography variant="body2" fontWeight="700">
+								{user.username}
+							</Typography>
+							<IconButton onClick={logout}>
+								<LogoutOutlined />
+							</IconButton>
+						</Box>
 					</ListItemButton>
-				))}
-			</List>
-		</Drawer>
+					<Box sx={{ paddingTop: "10px" }}></Box>
+					<ListItemButton>
+						<Box
+							sx={{
+								width: "100%",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "space-between",
+							}}
+						>
+							<Typography variant="body2" fontWeight="700">
+								お気に入り
+							</Typography>
+						</Box>
+					</ListItemButton>
+					<Box sx={{ paddingTop: "10px" }}></Box>
+					<ListItemButton>
+						<Box
+							sx={{
+								width: "100%",
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "space-between",
+							}}
+						>
+							<Typography variant="body2" fontWeight="700">
+								プライベート
+							</Typography>
+							<IconButton>
+								<AddBoxOutlined fontSize="small" />
+							</IconButton>
+						</Box>
+					</ListItemButton>
+					{memos.map((item: any, index: any) => (
+						<ListItemButton
+							sx={{ pl: "20px" }}
+							component={Link}
+							to={`/memo/${item.id}`}
+							key={item.id}
+							selected={activeIndex === index}
+							// selected={true}
+						>
+							<Typography>
+								{item.icon} {item.title}
+							</Typography>
+						</ListItemButton>
+					))}
+				</List>
+			</Drawer>
+		</>
 	);
 };
 

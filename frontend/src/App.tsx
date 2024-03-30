@@ -13,6 +13,7 @@ import Memo from "./components/pages/Memo";
 
 function App() {
 	const theme = createTheme({
+		// スタイルのルート定義
 		palette: {
 			mode: "dark",
 		},

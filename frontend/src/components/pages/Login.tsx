@@ -66,7 +66,7 @@ const Login = () => {
 
 	return (
 		<>
-			<Box component="form" onSubmit={handleSubmit}>
+			<Box component="form" sx={{ mt: 1 }} onSubmit={handleSubmit}>
 				<TextField
 					label="Username"
 					fullWidth

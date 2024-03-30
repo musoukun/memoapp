@@ -33,8 +33,8 @@ const Home = () => {
 			sx={{
 				height: "100%",
 				display: "flex",
-				justifyContent: "center",
 				alignItems: "center",
+				justifyContent: "center",
 			}}
 		>
 			<LoadingButton

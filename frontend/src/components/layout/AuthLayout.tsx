@@ -6,6 +6,7 @@ import notionLogo from "../../assets/notion-1-1.svg";
 import authUtils from "../../utils/authUtil";
 import { userStateAtom } from "../../state/atoms/userAtoms";
 import { useRecoilState } from "recoil";
+import "../../App.css";
 
 const AuthLayout = () => {
 	const navigate = useNavigate();
@@ -26,11 +27,12 @@ const AuthLayout = () => {
 		};
 		checkAuth();
 	}, [navigate]);
+
 	return (
 		<Container component="main" maxWidth="xs">
 			<Box
 				sx={{
-					marginTop: 6,
+					marginTop: 8,
 					display: "flex",
 					alignItems: "center",
 					flexDirection: "column",
