@@ -1,3 +1,6 @@
+# rubocop:disable Style/Documentation, Layout/EndOfLine
+# frozen_string_literal: true
+
 module Api
 	module Auth
 		class SessionsController < ApplicationController

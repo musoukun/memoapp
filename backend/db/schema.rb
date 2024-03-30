@@ -12,10 +12,11 @@
 
 ActiveRecord::Schema[7.1].define(version: 2024_03_28_054303) do
   # These are extensions that must be enabled in order to support this database
+  enable_extension "pgcrypto"
   enable_extension "plpgsql"
 
-  create_table "memos", force: :cascade do |t|
-    t.bigint "user_id", null: false
+  create_table "memos", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "user_id", null: false
     t.string "icon", default: "📝"
     t.string "title", default: "無題"
     t.text "description", default: "ここに自由に記入してください"
@@ -27,16 +28,16 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_28_054303) do
     t.index ["user_id"], name: "index_memos_on_user_id"
   end
 
-  create_table "sections", force: :cascade do |t|
-    t.bigint "memo_id", null: false
+  create_table "sections", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "memo_id", null: false
     t.string "title", default: ""
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
     t.index ["memo_id"], name: "index_sections_on_memo_id"
   end
 
-  create_table "tasks", force: :cascade do |t|
-    t.bigint "section_id", null: false
+  create_table "tasks", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
+    t.uuid "section_id", null: false
     t.string "title", default: ""
     t.text "content", default: ""
     t.integer "position"
@@ -45,7 +46,7 @@ ActiveRecord::Schema[7.1].define(version: 2024_03_28_054303) do
     t.index ["section_id"], name: "index_tasks_on_section_id"
   end
 
-  create_table "users", force: :cascade do |t|
+  create_table "users", id: :uuid, default: -> { "gen_random_uuid()" }, force: :cascade do |t|
     t.string "username"
     t.string "password_digest"
     t.datetime "created_at", null: false

@@ -18,6 +18,7 @@ const Home = () => {
 			setLoading(true);
 			// メモの作成処理
 			const res = await memoApi.create();
+			console.log(res.data);
 			navigate(`/memo/${res.data.id}`);
 		} catch (err: any) {
 			// エラー処理
