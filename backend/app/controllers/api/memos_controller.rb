@@ -1,6 +1,10 @@
 module Api
   class MemosController < ApplicationController
     before_action :verify_token
+    # set_memoメソッドをbefore_actionでupdateアクションに適用しています。
+    # これにより、updateアクションが呼び出される前に、更新しようとしているmemoインスタンスが@memo変数にセットされます。
+    before_action :set_memo, only: [:update, :destroy] # set_memoをupdateとdestroyアクションに適用
+
 
     def create
       memo_count = Memo.count
@@ -37,11 +41,14 @@ module Api
 
     def show
       @memo = @current_user.memos.find(params[:id])
+      render json: @memo
     rescue ActiveRecord::RecordNotFound
       render json: { error: 'メモが存在しません' }, status: :not_found
     end
 
     def update
+      logger.debug("update")
+      logger.debug(memo_params)
       if @memo.update(memo_params)
         render json: @memo
       else
@@ -63,15 +70,16 @@ module Api
 
     private
 
-    # def get_memo
-    #   @memo = @current_user.memos.find(params[:id])
-    # rescue ActiveRecord::RecordNotFound
-    #   render json: { error: 'メモが存在しません' }, status: :not_found
-    # end
-
-    # def memo_params
-    #   params.require(:memo).permit(:title, :description, :favorite)
-    # end
+    def set_memo
+      @memo = Memo.find(params[:id])
+    end
+    
+    # memo_paramsメソッドを定義して、title, description, favoriteといったパラメータのうち
+    # 許可されたものだけがupdateメソッドによって更新されるようにしています。
+    # このメソッドはupdateアクション内で呼び出される。
+    def memo_params
+      params.require(:memo).permit(:title, :description, :favorite) # ここに許可するパラメータを追加
+    end
 
     def render_unauthorized
       render json: { error: 'Unauthorized' }, status: :unauthorized
