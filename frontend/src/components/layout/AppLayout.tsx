@@ -4,7 +4,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import authUtils from "../../utils/authUtil";
 import SideBar from "../common/Sidebar";
-import { userStateAtom } from "../../state/atoms/userAtoms";
+import { userStateAtom } from "../../atoms/userAtoms";
 import Loading from "../common/Loading";
 import { useRecoilState } from "recoil";
 

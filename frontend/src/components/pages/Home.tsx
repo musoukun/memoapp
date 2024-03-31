@@ -5,8 +5,8 @@ import { useState } from "react";
 import memoApi from "../../api/memoApi";
 import { useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { userStateAtom } from "../../state/atoms/userAtoms";
-import { createMemoflgAtom } from "../../state/atoms/memoAtoms";
+import { userStateAtom } from "../../atoms/userAtoms";
+import { createMemoflgAtom } from "../../atoms/memoAtoms";
 
 const Home = () => {
 	const navigate = useNavigate();

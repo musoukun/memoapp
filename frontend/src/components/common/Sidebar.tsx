@@ -1,58 +1,82 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Box, Drawer, List, ListItemButton, Typography } from "@mui/material";
-import { AddBoxOutlined, LogoutOutlined } from "@mui/icons-material";
+import { AddBoxOutlined, Favorite, LogoutOutlined } from "@mui/icons-material";
 import { IconButton } from "@mui/material";
 import assets from "../../assets";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
-import { userStateAtom } from "../../state/atoms/userAtoms";
+import { userStateAtom } from "../../atoms/userAtoms";
 import { Link } from "react-router-dom";
 import memoApi from "../../api/memoApi";
 import {
 	createMemoflgAtom,
 	memosStateAtom,
 	updateMemoflgAtom,
-} from "../../state/atoms/memoAtoms";
+} from "../../atoms/memoAtoms";
+import { Memo } from "../../types/api";
+import { descriptionStateAtom } from "../../atoms/descriptionAtom";
+import { favoriteStateAtom } from "../../atoms/favoliteAtom";
+import { titleStateAtom } from "../../atoms/titleAtom";
+import { AxiosResponse } from "axios";
 
 const Sidebar = () => {
 	const [activeIndex, setActiveIndex] = useState(0); // アクティブなメモのインデックスを保持するステート
 	const navigate = useNavigate(); // ルーティング用の関数
-	const user = useRecoilValue(userStateAtom);
-	const [memos, setMemos] = useRecoilState(memosStateAtom);
-	const { id } = useParams(); // メモのIDを取得 useParamsはパラメータを取得するためのフック
 
-	// メモが追加されたことを確認するState
-	const [createMemoflg, setCreateMemoflg] = useRecoilState(createMemoflgAtom);
-	// メモが更新されたことを確認するState
-	const [updateMemoflg, setUpdateMemoflg] = useRecoilState(updateMemoflgAtom);
+	const user = useRecoilValue(userStateAtom); // ユーザー情報の状態を取得
+	const [memos, setMemos] = useRecoilState(memosStateAtom); // メモ一覧の状態を取得
+
+	const [createMemoflg, setCreateMemoflg] = useRecoilState(createMemoflgAtom); // メモ作成フラグの状態を取得
+	const [updateMemoflg, setUpdateMemoflg] = useRecoilState(updateMemoflgAtom); // メモ更新フラグの状態を取得
+	const [deleteMemoflg, setDeleteMemoflg] = useRecoilState(createMemoflgAtom); // メモ削除フラグの状態を取得
+
+	const { id } = useParams(); // メモのIDを取得 useParamsはパラメータを取得するためのフック
 
 	const logout = () => {
 		localStorage.removeItem("token");
 		navigate("/login");
 	};
 
+	const addMemo = async () => {
+		try {
+			// メモの作成処理
+			const res = await memoApi.create();
+			console.log(res.data);
+
+			// メモ一覧に新しく作成したメモを追加
+			const newMemos = [...memos, res.data];
+			setMemos(newMemos);
+
+			// 作成したメモのページに遷移
+			navigate(`/memo/${res.data.id}`);
+		} catch (err: any) {
+			alert(err.status + ": " + err.statusText);
+		}
+	};
+
 	useEffect(() => {
 		const getMemos = async () => {
 			// メモの取得処理
 			try {
-				const res = await memoApi.getAll();
-				console.log(res.data);
+				const res: AxiosResponse<Memo[]> = await memoApi.getAll();
 				setMemos(res.data);
-				setCreateMemoflg(false); // メモが追加されたことを確認したらフラグをfalseにする
-				setUpdateMemoflg(false); // メモが更新されたことを確認したらフラグをfalseにする
+				setDeleteMemoflg(false);
+				setUpdateMemoflg(false);
+				setCreateMemoflg(false);
 			} catch (err: any) {
 				alert(err.status + ": " + err.statusText);
 			}
 		};
 		getMemos();
-	}, [setMemos, createMemoflg, updateMemoflg]); // createMemoflg,updateMemoflgが変更されたときにメモ一覧を再取得
+	}, [deleteMemoflg, createMemoflg, updateMemoflg]);
 
 	useEffect(() => {
 		// メモのIDが変更されたときにアクティブなメモのインデックスを更新
 		const index = memos.findIndex((memo: any) => memo.id === id);
 		setActiveIndex(index);
-	}, [navigate]);
+	}, [navigate, updateMemoflg, createMemoflg, deleteMemoflg]);
 
 	return (
 		<>
@@ -69,10 +93,7 @@ const Sidebar = () => {
 						backgroundColor: assets.colors.dark, // ブラウザのダークモードに合わせて自動で変更したい
 					}}
 				>
-					<ListItemButton
-						component={Link}
-						to="/memo/d1a54b80-9823-4090-aaa1-deb59df09be5"
-					>
+					<ListItemButton component={Link} to="/">
 						<Box
 							sx={{
 								width: "100%",
@@ -104,6 +125,21 @@ const Sidebar = () => {
 							</Typography>
 						</Box>
 					</ListItemButton>
+					{memos
+						.filter((item: Memo) => item.favorite)
+						.map((item: Memo, index: number) => (
+							<ListItemButton
+								sx={{ pl: "20px" }}
+								component={Link}
+								to={`/memo/${item.id}`}
+								key={item.id}
+								selected={activeIndex === index}
+							>
+								<Typography>
+									{item.icon} {item.title}
+								</Typography>
+							</ListItemButton>
+						))}
 					<Box sx={{ paddingTop: "10px" }}></Box>
 					<ListItemButton>
 						<Box
@@ -117,7 +153,7 @@ const Sidebar = () => {
 							<Typography variant="body2" fontWeight="700">
 								プライベート
 							</Typography>
-							<IconButton>
+							<IconButton onClick={() => addMemo()}>
 								<AddBoxOutlined fontSize="small" />
 							</IconButton>
 						</Box>

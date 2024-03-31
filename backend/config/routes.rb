@@ -17,16 +17,17 @@ Rails.application.routes.draw do
     #resources :memos, only: [:update]は、memosリソースに対する標準のRESTfulアクションのうち
     # updateアクションのみを利用することを指定しています。
     # この時点で、RailsはPATCH /memos/:idというルートを自動的に生成します。
-    resources :memos, only: [:update] do
+    resources :memos, only: [:update, :destroy] do
       member do
         patch :update
         put :update
-
+        
         # patch :updateとput :updateは、それぞれ
         # PATCH /memos/:id
         # PUT /memos/:idという
         # ルートを明示的に定義します。
-        
+
+        delete :destroy # /memos/:id
         # 特定のidを持つメモを更新するためのリクエストとして、両方のHTTPメソッドが許可されます。
       end
     end

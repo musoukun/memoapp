@@ -4,7 +4,7 @@ import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import notionLogo from "../../assets/notion-1-1.svg";
 import authUtils from "../../utils/authUtil";
-import { userStateAtom } from "../../state/atoms/userAtoms";
+import { userStateAtom } from "../../atoms/userAtoms";
 import { useRecoilState } from "recoil";
 import "../../App.css";
 
