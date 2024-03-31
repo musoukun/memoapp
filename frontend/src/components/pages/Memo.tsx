@@ -5,7 +5,6 @@ import { IconButton, Snackbar, TextField } from "@mui/material";
 import {
 	DeleteOutline,
 	StarBorderOutlined,
-	StarBorder,
 	StarOutlined,
 } from "@mui/icons-material";
 import { useEffect, useRef, useState } from "react";
@@ -24,7 +23,20 @@ import EmojiPicker from "../common/EmojiPicker";
 import { titleStateAtom } from "../../atoms/titleAtom.ts";
 import { descriptionStateAtom } from "../../atoms/descriptionAtom.ts";
 import { favoriteStateAtom } from "../../atoms/favoliteAtom.ts";
-import ReactMarkdown from "react-markdown";
+import {
+	DndContext,
+	KeyboardSensor,
+	PointerSensor,
+	closestCenter,
+	useSensor,
+	useSensors,
+} from "@dnd-kit/core";
+import {
+	SortableContext,
+	arrayMove,
+	verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { MarkdownLineEditor } from "../common/MarkdownLineEditor.tsx";
 
 const Memo = () => {
 	const navigate = useNavigate();
@@ -36,6 +48,8 @@ const Memo = () => {
 	const [title, setTitle] = useRecoilState(titleStateAtom); // メモのタイトルの状態を取得
 	const [description, setDescription] = useRecoilState(descriptionStateAtom); // メモの本文の状態を取得
 	const [favorite, setFavorite] = useRecoilState(favoriteStateAtom); // お気に入りの状態を取得
+
+	// const [markdown, setMarkdown] = useState(description); // マークダウンの状態を取得
 
 	const [updateMemoflg, setUpdateMemoflg] = useRecoilState(updateMemoflgAtom); // メモ更新フラグの状態を取得
 	const [deleteMemoflg, setDeleteMemoflg] = useRecoilState(createMemoflgAtom); // メモ削除フラグの状態を取得
@@ -155,6 +169,24 @@ const Memo = () => {
 		}
 	};
 
+	const [items, setItems] = useState(["item-1", "item-2", "item-3"]);
+	const sensors = useSensors(
+		useSensor(PointerSensor),
+		useSensor(KeyboardSensor)
+	);
+
+	function handleDragEnd(event: any) {
+		const { active, over } = event;
+
+		if (active.id !== over.id) {
+			setItems((items) => {
+				const oldIndex = items.indexOf(active.id);
+				const newIndex = items.indexOf(over.id);
+				return arrayMove(items, oldIndex, newIndex);
+			});
+		}
+	}
+
 	return (
 		<>
 			<Box
@@ -193,10 +225,11 @@ const Memo = () => {
 						}}
 					></TextField>
 					<TextField
-						onChange={() => setDescription(description)}
+						onChange={(e) => setDescription(e.target.value)}
 						value={description}
 						variant="outlined"
 						fullWidth
+						multiline
 						placeholder="追加"
 						sx={{
 							".MuiOutlinedInput-input": { padding: 0 },
@@ -211,6 +244,7 @@ const Memo = () => {
 					/>
 				</Box>
 			</Box>
+			<MarkdownLineEditor />
 			{/* 保存タイミング表示用 */}
 			<Snackbar
 				open={showMessage}
@@ -224,6 +258,7 @@ const Memo = () => {
 					},
 				}}
 			/>
+			{/* <MarkdownViewer markdownText={description}></MarkdownViewer>  */}
 		</>
 	);
 };
