@@ -2,6 +2,37 @@
 // src/theme/index.ts
 import { createTheme, responsiveFontSizes } from "@mui/material/styles";
 
+const theme = createTheme({
+	components: {
+		// TextFieldに対するグローバルスタイル
+		MuiTextField: {
+			styleOverrides: {
+				root: {
+					// TextFieldの共通スタイル
+					width: "100%",
+					".MuiInputBase-input": {
+						border: "none",
+						padding: "8px 0",
+						margin: 0,
+						// テーマのカラーモードに基づく条件式を追加
+						backgroundColor: (theme: {
+							palette: { mode: string; grey: any[] };
+						}) =>
+							theme.palette.mode === "dark"
+								? theme.palette.grey[900]
+								: theme.palette.grey[100],
+						color: (theme: { palette: { mode: string } }) =>
+							theme.palette.mode === "dark" ? "white" : "black",
+						"&:focus": {
+							outline: "none",
+						},
+					},
+				},
+			},
+		},
+	},
+});
+
 const lightTheme = createTheme({
 	palette: {
 		mode: "light",

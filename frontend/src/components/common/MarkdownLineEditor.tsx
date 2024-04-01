@@ -24,6 +24,7 @@ import { useRecoilState } from "recoil";
 import { memoLineAtom, memoLinesAtom } from "../../atoms/memoLineAtom";
 import { MemoLine } from "../../types/memoLine.ts";
 import textFieldStyles from "../../style/textFieldStyles.ts";
+import reactMarkdownStyles from "../../style/reactMarkdownStyles.ts";
 
 // スタイルシート（CSS in JSの形式で示しますが、普通のCSSとしても同じことができます）
 // ブラウザのdark modeにあわせてstyleを設定したい
@@ -232,12 +233,13 @@ export const MarkdownLineEditor = () => {
 								onClick={() =>
 									setFocusedMemoLineId(memoLine.id)
 								}
+								sx={{ ...reactMarkdownStyles }}
 							>
 								{!memoLine.text ? (
 									<Box
 										className="markdownContainer"
 										sx={{
-											minHeight: "2.3vh",
+											...textFieldStyles,
 											visibility: memoLine.isFocus
 												? "visible"
 												: "hidden",
@@ -260,15 +262,12 @@ export const MarkdownLineEditor = () => {
 									setFocusedMemoLineId(memoLine.id)
 								}
 								onKeyDown={(e) => handleKeyDown(e, index)}
-								placeholder={
-									memoLine.text
-										? "文字を入力してください"
-										: ""
-								}
+								placeholder="テキストを入力してください"
+								InputProps={{ notched: false }} // ノッチ（枠線の切り欠き部分）を非表示にする
 								fullWidth
 								multiline
 								variant="outlined"
-								sx={textFieldStyles}
+								sx={{ ...textFieldStyles }}
 							/>
 						)}
 					</div>

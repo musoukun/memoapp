@@ -257,7 +257,9 @@ const Memo = () => {
 					/> */}
 				</Box>
 			</Box>
-			<MarkdownLineEditor />
+			<Box sx={{ padding: "10px 50px" }}>
+				<MarkdownLineEditor />
+			</Box>
 			{/* 保存タイミング表示用 */}
 			<Snackbar
 				open={showMessage}
