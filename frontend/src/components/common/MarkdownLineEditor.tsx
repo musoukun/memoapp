@@ -25,6 +25,7 @@ import { memoLineAtom, memoLinesAtom } from "../../atoms/memoLineAtom";
 import { MemoLine } from "../../types/memoLine.ts";
 import textFieldStyles from "../../style/textFieldStyles.ts";
 import reactMarkdownStyles from "../../style/reactMarkdownStyles.ts";
+import { descriptionStateAtom } from "../../atoms/descriptionAtom.ts";
 
 // スタイルシート（CSS in JSの形式で示しますが、普通のCSSとしても同じことができます）
 // ブラウザのdark modeにあわせてstyleを設定したい
@@ -34,6 +35,8 @@ export const MarkdownLineEditor = () => {
 
 	// テキストエリアのリストを管理するための状態
 	const [memoLines, setMemoLines] = useRecoilState(memoLinesAtom);
+	const [description, setDescription] = useRecoilState(descriptionStateAtom);
+
 	// 新しいメモラインを追加するための状態
 	const [isAddingNewLine, setIsAddingNewLine] = useState(false);
 
@@ -41,6 +44,9 @@ export const MarkdownLineEditor = () => {
 	const [focusedMemoLineId, setFocusedMemoLineId] = useState<string | null>(
 		null
 	);
+
+	const [debounceTime, setDebounceTime] = useState<number>(700); // デバウンス時間を状態として保存
+	const timer = useRef<ReturnType<typeof setTimeout> | null>(null); // タイマーを保存するためのref
 
 	// 新しいメモラインを一時的に保存するための状態
 	const [newLine, setNewLine] = useState<MemoLine>();
@@ -66,6 +72,25 @@ export const MarkdownLineEditor = () => {
 				)
 		);
 	};
+
+	useEffect(() => {
+		// memoLines.textを順番に取得して、改行コード区切りでdescriptionにセットする関数
+		const joinMemoLines = () => {
+			setDescription(
+				memoLines
+					.map((memoLine: MemoLine) => memoLine.text)
+					.filter((text: string) => text)
+					.join("\n")
+			);
+		};
+		if (timer.current) clearTimeout(timer.current); // タイマーが存在する場合はクリア
+
+		timer.current = setTimeout(async () => {
+			// 一定時間後に実行
+			joinMemoLines();
+			console.log("description:", description);
+		}, debounceTime); //debounceTime は state で管理
+	}, [memoLines]);
 
 	// ドラッグアンドドロップが終了したときの処理
 	const handleDragEnd = (event: { active: any; over: any }) => {

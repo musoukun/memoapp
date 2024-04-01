@@ -1,5 +1,9 @@
 // ReactMarkdown コンポーネントに適用するスタイル
 const markdownStyles = {
+	"& h1": {
+		marginTop: 1, // マージンを追加
+		marginBottom: 1, // マージンを追加
+	},
 	"& ul": {
 		// 非順序付きリストのスタイル
 

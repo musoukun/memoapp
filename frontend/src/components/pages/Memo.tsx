@@ -24,21 +24,10 @@ import EmojiPicker from "../common/EmojiPicker";
 import { titleStateAtom } from "../../atoms/titleAtom.ts";
 import { descriptionStateAtom } from "../../atoms/descriptionAtom.ts";
 import { favoriteStateAtom } from "../../atoms/favoliteAtom.ts";
-import {
-	DndContext,
-	KeyboardSensor,
-	PointerSensor,
-	closestCenter,
-	useSensor,
-	useSensors,
-} from "@dnd-kit/core";
-import {
-	SortableContext,
-	arrayMove,
-	verticalListSortingStrategy,
-} from "@dnd-kit/sortable";
+
 import { MarkdownLineEditor } from "../common/MarkdownLineEditor.tsx";
 import DarkModeToggle from "../common/DarkModeToggle.tsx";
+import { memoLinesAtom } from "../../atoms/memoLineAtom.ts";
 
 const Memo = () => {
 	const navigate = useNavigate();
@@ -49,6 +38,9 @@ const Memo = () => {
 
 	const [title, setTitle] = useRecoilState(titleStateAtom); // メモのタイトルの状態を取得
 	const [description, setDescription] = useRecoilState(descriptionStateAtom); // メモの本文の状態を取得
+	// Markdownテキストエリアのリストを管理するための状態
+	const [memoLines, setMemoLines] = useRecoilState(memoLinesAtom);
+
 	const [favorite, setFavorite] = useRecoilState(favoriteStateAtom); // お気に入りの状態を取得
 
 	// const [markdown, setMarkdown] = useState(description); // マークダウンの状態を取得
@@ -81,12 +73,25 @@ const Memo = () => {
 
 	// メモの内容を取得する処理
 	useEffect(() => {
+		// descriptionをmemoLinesに分割して格納する処理
+		const splitDescription = (description: string) => {
+			const lines = description.split("\n");
+			// メモラインのリストを作成、配列の0番目のidはfirstという文字列にする
+			const memoLines = lines.map((line, index) => ({
+				id: index === 0 ? "first" : `${index}`,
+				text: line,
+				isFocus: false,
+			}));
+			setMemoLines(memoLines);
+		};
+
 		const getMemo = async () => {
 			try {
 				const res: AxiosResponse<Memo> = await memoApi.show(id!); // Add '!' to assert that id is not undefined
 				setMemo(res.data); // 現在選択中のメモの状態を更新
 				setTitle(res.data.title); // タイトルと本文の設定
-				setDescription(res.data.description); // タイトルと本文の設定
+				// setDescription(res.data.description); // タイトルと本文の設定
+				splitDescription(res.data.description); // Markdownテキストエリアのリストを作成
 				setIcon(res.data.icon); // アイコンの設定
 				setFavorite(res.data.favorite); // お気に入りの設定
 			} catch (err) {
@@ -170,24 +175,6 @@ const Memo = () => {
 			console.error(err);
 		}
 	};
-
-	const [items, setItems] = useState(["item-1", "item-2", "item-3"]);
-	const sensors = useSensors(
-		useSensor(PointerSensor),
-		useSensor(KeyboardSensor)
-	);
-
-	function handleDragEnd(event: any) {
-		const { active, over } = event;
-
-		if (active.id !== over.id) {
-			setItems((items) => {
-				const oldIndex = items.indexOf(active.id);
-				const newIndex = items.indexOf(over.id);
-				return arrayMove(items, oldIndex, newIndex);
-			});
-		}
-	}
 
 	return (
 		<>
