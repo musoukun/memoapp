@@ -66,46 +66,48 @@ const Login = () => {
 
 	return (
 		<>
-			<Box component="form" sx={{ mt: 1 }} onSubmit={handleSubmit}>
-				<TextField
-					label="Username"
-					fullWidth
-					margin="normal"
-					name="username"
-					required
-					disabled={loading}
-					error={usernameErrText !== ""}
-					helperText={usernameErrText}
-				/>
-				<TextField
-					label="Password"
-					fullWidth
-					type="password"
-					margin="normal"
-					name="password"
-					required
-					disabled={loading}
-					error={passwordErrText !== ""}
-					helperText={passwordErrText}
-				/>
-				<LoadingButton
-					sx={{ mt: 3, mb: 2 }}
-					fullWidth
-					type="submit"
-					color="primary"
-					variant="outlined"
-					loading={loading}
-				>
-					Login
-				</LoadingButton>
-				<Button
-					component={Link}
-					to="/register"
-					sx={{ textTransform: "none" }}
-				>
-					アカウントを持っていませんか？新規登録
-				</Button>
-			</Box>
+			<div className="center-content">
+				<Box component="form" sx={{ mt: 1 }} onSubmit={handleSubmit}>
+					<TextField
+						label="Username"
+						fullWidth
+						margin="normal"
+						name="username"
+						required
+						disabled={loading}
+						error={usernameErrText !== ""}
+						helperText={usernameErrText}
+					/>
+					<TextField
+						label="Password"
+						fullWidth
+						type="password"
+						margin="normal"
+						name="password"
+						required
+						disabled={loading}
+						error={passwordErrText !== ""}
+						helperText={passwordErrText}
+					/>
+					<LoadingButton
+						sx={{ mt: 3, mb: 2 }}
+						fullWidth
+						type="submit"
+						color="primary"
+						variant="outlined"
+						loading={loading}
+					>
+						Login
+					</LoadingButton>
+					<Button
+						component={Link}
+						to="/register"
+						sx={{ textTransform: "none" }}
+					>
+						アカウントを持っていませんか？新規登録
+					</Button>
+				</Box>
+			</div>
 		</>
 	);
 };

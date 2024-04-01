@@ -4,23 +4,15 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AuthLayout from "./components/layout/AuthLayout";
 import Login from "./components/pages/Login";
 import Register from "./components/pages/Register";
-import { createTheme } from "@mui/material/styles";
 import { CssBaseline } from "@mui/material";
-import { ThemeProvider } from "@mui/material/styles";
 import AppLayout from "./components/layout/AppLayout";
 import Home from "./components/pages/Home";
 import Memo from "./components/pages/Memo";
+import { ColorModeProvider } from "./contexts/ColorModeContext";
 
 function App() {
-	const theme = createTheme({
-		// スタイルのルート定義
-		palette: {
-			mode: "dark",
-		},
-	});
-
 	return (
-		<ThemeProvider theme={theme}>
+		<ColorModeProvider>
 			<CssBaseline />
 			<BrowserRouter>
 				<Routes>
@@ -35,7 +27,7 @@ function App() {
 					</Route>
 				</Routes>
 			</BrowserRouter>
-		</ThemeProvider>
+		</ColorModeProvider>
 	);
 }
 

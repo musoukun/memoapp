@@ -3,6 +3,7 @@
 import { Box } from "@mui/system";
 import { IconButton, Snackbar, TextField } from "@mui/material";
 import {
+	DarkMode,
 	DeleteOutline,
 	StarBorderOutlined,
 	StarOutlined,
@@ -37,6 +38,7 @@ import {
 	verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { MarkdownLineEditor } from "../common/MarkdownLineEditor.tsx";
+import DarkModeToggle from "../common/DarkModeToggle.tsx";
 
 const Memo = () => {
 	const navigate = useNavigate();
@@ -191,6 +193,17 @@ const Memo = () => {
 		<>
 			<Box
 				sx={{
+					position: "absolute",
+					top: 0,
+					right: 0,
+					padding: "10px",
+					zIndex: 100,
+				}}
+			>
+				<DarkModeToggle />
+			</Box>
+			<Box
+				sx={{
 					diplay: "flex",
 					alignItems: "center",
 					width: "100%",
@@ -224,7 +237,7 @@ const Memo = () => {
 							},
 						}}
 					></TextField>
-					<TextField
+					{/* <TextField
 						onChange={(e) => setDescription(e.target.value)}
 						value={description}
 						variant="outlined"
@@ -241,7 +254,7 @@ const Memo = () => {
 								fontWeight: 700,
 							},
 						}}
-					/>
+					/> */}
 				</Box>
 			</Box>
 			<MarkdownLineEditor />

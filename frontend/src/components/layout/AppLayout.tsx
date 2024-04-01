@@ -7,6 +7,7 @@ import SideBar from "../common/Sidebar";
 import { userStateAtom } from "../../atoms/userAtoms";
 import Loading from "../common/Loading";
 import { useRecoilState } from "recoil";
+import "../../App.css";
 
 const AppLayout = () => {
 	const navigate = useNavigate();
@@ -45,18 +46,20 @@ const AppLayout = () => {
 			<Loading fullHeight />
 		</>
 	) : (
-		<Box sx={{ display: "flex" }}>
-			<SideBar />
-			<Box
-				sx={{
-					flexGrow: 1,
-					p: 1,
-					width: "max-content",
-				}}
-			>
-				<Outlet />
+		<div id="mainRoot" className="mainRoot">
+			<Box sx={{ display: "flex" }}>
+				<SideBar />
+				<Box
+					sx={{
+						flexGrow: 1,
+						p: 1,
+						width: "max-content",
+					}}
+				>
+					<Outlet />
+				</Box>
 			</Box>
-		</Box>
+		</div>
 	);
 };
 export default AppLayout;

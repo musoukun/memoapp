@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Box, Container } from "@mui/material";
+import { Box, Container, ThemeProvider } from "@mui/material";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import notionLogo from "../../assets/notion-1-1.svg";

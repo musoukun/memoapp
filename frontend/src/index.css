@@ -1,4 +1,4 @@
-:root {
+/* :root {
   font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
@@ -11,6 +11,13 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+} */
+.defaultRoot {
+  /* デフォルトのスタイル */
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  /* text-align: center; */
 }
 
 a {
@@ -22,12 +29,37 @@ a:hover {
   color: #535bf2;
 }
 
-body {
-  margin: 0;
+Login.root {
+  /* 上下中央揃え */
+  height: 100vh;
   display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+  justify-content: center;
+  margin-top: 200px;
+}
+
+main.root{
+  /* メイン画面用のスタイル */
+  max-width: 1280px;
+  padding-left: 50px;
+  padding-right: 50px;
+  /* text-align: center; */
+
+}
+
+.markdownContainer * {
+  margin: 0;
+  padding-left: 16px; /* 左のパディング */
+  padding-right: 16px; /* 右のパディング */
+
+}
+
+Memo.root{
+  /* メイン画面用のスタイル */
+  max-width: 1280px;
+  padding-left: 100px;
+  padding-right: 100px;
+  /* text-align: center; */
+
 }
 
 h1 {

@@ -1,3 +1,4 @@
+/* eslint-disable prefer-const */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { v4 as uuidv4 } from "uuid";
@@ -16,33 +17,40 @@ import {
 	verticalListSortingStrategy,
 	useSortable,
 } from "@dnd-kit/sortable";
-import { CSS } from "@dnd-kit/utilities";
+import { CSS, add } from "@dnd-kit/utilities";
 import ReactMarkdown from "react-markdown";
-import { Box } from "@mui/material";
+import { Box, TextField, useTheme } from "@mui/material";
+import { useRecoilState } from "recoil";
+import { memoLineAtom, memoLinesAtom } from "../../atoms/memoLineAtom";
+import { MemoLine } from "../../types/memoLine.ts";
+import textFieldStyles from "../../style/textFieldStyles.ts";
 
-type MemoLine = {
-	id: string;
-	text: string;
-	isFocus: boolean;
-};
+// スタイルシート（CSS in JSの形式で示しますが、普通のCSSとしても同じことができます）
+// ブラウザのdark modeにあわせてstyleを設定したい
 
 export const MarkdownLineEditor = () => {
+	const theme = useTheme();
+
 	// テキストエリアのリストを管理するための状態
-	const [memoLines, setMemoLines] = useState<MemoLine[]>([
-		{ id: "top", text: "", isFocus: true },
-	]);
+	const [memoLines, setMemoLines] = useRecoilState(memoLinesAtom);
+	// 新しいメモラインを追加するための状態
+	const [isAddingNewLine, setIsAddingNewLine] = useState(false);
 
 	// フォーカスを変更したいmemoLineのIDを一時保存するための状態
 	const [focusedMemoLineId, setFocusedMemoLineId] = useState<string | null>(
 		null
 	);
 
+	// 新しいメモラインを一時的に保存するための状態
+	const [newLine, setNewLine] = useState<MemoLine>();
+
 	// 各memoLineの全体に対する参照を保持する配列
 	const memoLineRefs = useRef<(HTMLDivElement | null)[]>([]);
+	// テキストエリアの参照を保持するref
+	const textFieldRef = useRef<HTMLTextAreaElement>(null);
 
 	const setValue = (id: string, newText: any) => {
 		// テキストエリアの値を更新する関数
-
 		setMemoLines(
 			(
 				memoLines // memoLinesのコピーを作成
@@ -97,85 +105,109 @@ export const MarkdownLineEditor = () => {
 
 	// useEffectを使用して、フォーカスを管理します
 	useEffect(() => {
-		const changeFocus = async () => {
-			// 2回目以降のフォーカス変更の処理のみconsole.logを表示
+		const changeFocus = () => {
 			console.log("変更前:", memoLines);
-			// フォーカスを変更する
+
 			if (focusedMemoLineId) {
-				//clickedMemoLine.id が一致しないメモラインのisFocusをfalseにする
 				setMemoLines((currentMemoLines) =>
 					currentMemoLines.map((memoLine) => ({
 						...memoLine,
-						isFocus: false,
+						isFocus: memoLine.id === focusedMemoLineId,
 					}))
 				);
 
-				//clickedMemoLine.id が一致するメモラインのisFocusをtrueにする
-				setFocus(focusedMemoLineId);
 				const index = memoLines.findIndex(
 					(line) => line.id === focusedMemoLineId
 				);
+
 				if (index !== -1) {
 					memoLineRefs.current[index]?.focus();
-					setFocusedMemoLineId(null); // フォーカスを更新したらIDをクリア
+					setFocusedMemoLineId(null);
 				}
 			}
-			// ここまでの処理が終わるまで待機
-			await new Promise((resolve) => setTimeout(resolve, 0));
-			console.log("変更後:", memoLines);
+
+			if (newLine && textFieldRef.current) {
+				textFieldRef.current.focus();
+				textFieldRef.current.click();
+				setNewLine(undefined);
+			}
 		};
 
 		changeFocus();
-	}, [focusedMemoLineId]);
+		console.log("変更後:", memoLines);
+	}, [focusedMemoLineId, newLine]);
 
 	// テキストエリアのKeyDownイベントを処理する関数
 	const handleKeyDown = (
-		e: React.KeyboardEvent<HTMLTextAreaElement>,
-		memoLine: MemoLine,
+		e: React.KeyboardEvent<HTMLDivElement>,
 		index: number
 	) => {
+		const currentIndex = memoLines.findIndex((line) => line.isFocus); // フォーカスされているメモラインのindexを取得
+		if (currentIndex === -1) {
+			//	フォーカスされているメモラインがない場合は何もしない
+			return;
+		}
+
+		const lastIndex = memoLines.length - 1; // メモラインの最後のindexを取得
+		let newIndex; // 新しいindexを格納する変数
+
 		if (e.key === "Enter") {
 			e.preventDefault(); // デフォルトの挙動を阻止
-			addMemoLine(index + 1); // 現在のindexの次に新しいメモラインを追加
-			console.log(memoLines);
+			if (!isAddingNewLine) {
+				setIsAddingNewLine(true); // 追加処理開始
+				addMemoLine(index + 1).then((newLine) => {
+					// addMemoLineの処理が終わったら、新しいメモラインの情報をsetNewLineで追加
+					setNewLine(newLine);
+					setIsAddingNewLine(false); // 追加処理終了
+				});
+			}
 		}
+
+		if (e.key === "ArrowUp") {
+			e.preventDefault(); // デフォルトの挙動を阻止
+			// 矢印キーを押したときの処理
+			newIndex = currentIndex === 0 ? lastIndex : currentIndex - 1;
+		}
+		if (e.key === "ArrowDown") {
+			e.preventDefault(); // デフォルトの挙動を阻止
+			// 矢印キーを押したときの処理
+			newIndex = currentIndex === lastIndex ? 0 : currentIndex + 1;
+		}
+
+		newIndex !== undefined && setFocusedMemoLineId(memoLines[newIndex].id);
 	};
 
 	// memo を追加する関数
-	const addMemoLine = useCallback((index: number) => {
-		// currentMemoLinesのisFocusを全てfalseにする
-		setMemoLines((currentMemoLines) =>
-			currentMemoLines.map((memoLine) => ({
-				...memoLine,
-				isFocus: false,
-			}))
-		);
+	const addMemoLine = useCallback(async (index: number) => {
+		// 新しいメモラインを追加
+		return new Promise<MemoLine>((resolve) => {
+			setMemoLines((currentMemoLines) => {
+				const newLines = [
+					...currentMemoLines.slice(0, index),
+					{ id: uuidv4(), text: "", isFocus: true },
+					...currentMemoLines.slice(index),
+				];
 
-		setMemoLines((currentMemoLines) => {
-			const newLines = [
-				...currentMemoLines.slice(0, index),
-				{ id: uuidv4(), text: "", isFocus: true },
-				...currentMemoLines.slice(index),
-			];
-			// isFocusがtrueのメモラインのIDを設定
-			setFocusedMemoLineId(newLines[index].id);
-			return newLines;
+				resolve(newLines[index]); // 新しいメモラインの情報をresolveで返す
+				return newLines;
+			});
 		});
 	}, []);
 
-	//clickedMemoLineがクリックされたときにフォーカスを移動する関数
-	const handleOnclick = (clickedMemoLine: MemoLine) => {
-		setFocusedMemoLineId(clickedMemoLine.id); // フォーカスを変更したいmemoLineのIDを設定
-	};
-
-	// テキストエリアがクリックされたときにフォーカスを移動する関数
-	const setFocus = (clickedMemoLineId: string) => {
-		setMemoLines((prevMemoLines) =>
-			prevMemoLines.map((memoLine) => ({
-				...memoLine,
-				isFocus: memoLine.id === clickedMemoLineId,
-			}))
-		);
+	const handleChange = (
+		e: React.ChangeEvent<HTMLTextAreaElement | HTMLInputElement>,
+		id: string
+	) => {
+		const newText = e.target.value;
+		// 新しいテキストが現在のテキストと異なる場合のみ状態を更新
+		const memoLine = memoLines.find((line) => line.id === id);
+		if (memoLine && memoLine.text !== newText) {
+			setMemoLines(
+				memoLines.map((line) =>
+					line.id === id ? { ...line, text: newText } : line
+				)
+			);
+		}
 	};
 
 	return (
@@ -195,33 +227,49 @@ export const MarkdownLineEditor = () => {
 					>
 						{!memoLine.isFocus ? (
 							// clickされたらisFocusをtrueにして、textarea表示に切り替える
-							<Box onClick={() => handleOnclick(memoLine)}>
-								<ReactMarkdown>{memoLine.text}</ReactMarkdown>
+							// memoLine.textが空の場合はplaceholderを設定
+							<Box
+								onClick={() =>
+									setFocusedMemoLineId(memoLine.id)
+								}
+							>
+								{!memoLine.text ? (
+									<Box
+										className="markdownContainer"
+										sx={{
+											minHeight: "2.3vh",
+											visibility: memoLine.isFocus
+												? "visible"
+												: "hidden",
+										}}
+									>
+										{"文字を入力してください"}
+									</Box>
+								) : null}
+
+								<ReactMarkdown className="markdownContainer">
+									{memoLine.text}
+								</ReactMarkdown>
 							</Box>
 						) : (
-							<div style={style} {...attributes}>
-								<textarea
-									value={memoLine.text}
-									onChange={(e) =>
-										setValue(memoLine.id, e.target.value)
-									}
-									onClick={() => handleOnclick(memoLine)}
-									onKeyDown={(e) =>
-										handleKeyDown(e, memoLine, index)
-									}
-									style={{
-										width: "100%",
-										height: "auto",
-										minHeight: "2.3vh",
-										resize: "none",
-										overflow: "hidden", // テキストエリアのスクロールバーを非表示
-										border: "none",
-										backgroundColor: memoLine.isFocus // フォーカスされているテキストエリアの背景色を変更
-											? "rgba(0, 0, 0, 0.1)"
-											: "transparent",
-									}}
-								/>
-							</div>
+							<TextField
+								inputRef={textFieldRef}
+								value={memoLine.text}
+								onChange={(e) => handleChange(e, memoLine.id)}
+								onClick={() =>
+									setFocusedMemoLineId(memoLine.id)
+								}
+								onKeyDown={(e) => handleKeyDown(e, index)}
+								placeholder={
+									memoLine.text
+										? "文字を入力してください"
+										: ""
+								}
+								fullWidth
+								multiline
+								variant="outlined"
+								sx={textFieldStyles}
+							/>
 						)}
 					</div>
 				))}

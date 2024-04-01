@@ -1,6 +1,13 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Box, Drawer, List, ListItemButton, Typography } from "@mui/material";
+import {
+	Box,
+	Drawer,
+	List,
+	ListItemButton,
+	Typography,
+	useTheme,
+} from "@mui/material";
 import { AddBoxOutlined, Favorite, LogoutOutlined } from "@mui/icons-material";
 import { IconButton } from "@mui/material";
 import assets from "../../assets";
@@ -22,6 +29,7 @@ import { titleStateAtom } from "../../atoms/titleAtom";
 import { AxiosResponse } from "axios";
 
 const Sidebar = () => {
+	const theme = useTheme();
 	const [activeIndex, setActiveIndex] = useState(0); // アクティブなメモのインデックスを保持するステート
 	const navigate = useNavigate(); // ルーティング用の関数
 
@@ -84,13 +92,17 @@ const Sidebar = () => {
 				container={window.document.body}
 				variant="permanent"
 				open={true}
-				sx={{ width: 250, height: "100vh" }}
+				sx={{
+					width: 250,
+					height: "100vh",
+					bgcolor: theme.palette.background.default, // テーマに応じて背景色を設定
+				}}
 			>
 				<List
 					sx={{
 						width: 250,
 						height: "100vh",
-						backgroundColor: assets.colors.dark, // ブラウザのダークモードに合わせて自動で変更したい
+						bgcolor: theme.palette.background.default, // テーマに応じて背景色を設定
 					}}
 				>
 					<ListItemButton component={Link} to="/">
