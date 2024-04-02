@@ -10,7 +10,7 @@ import {
 } from "@mui/material";
 import { AddBoxOutlined, LogoutOutlined } from "@mui/icons-material";
 import { IconButton } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { userStateAtom } from "../../atoms/userAtoms";
@@ -54,7 +54,6 @@ const Sidebar = () => {
 			const newMemos = [...memos, res.data];
 			setMemos(newMemos);
 
-			// 作成したメモのページに遷移
 			navigate(`/memo/${res.data.id}`);
 		} catch (err: any) {
 			alert(err.status + ": " + err.statusText);

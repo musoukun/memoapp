@@ -57,21 +57,21 @@ const Memo = () => {
 		initialContentStateAtom
 	);
 
-	// 更新メッセージを表示し、指定された時間後に非表示にする関数
-	const displayUpdateMessage = () => {
-		const now = new Date();
-		const formattedDate = now.toLocaleString("ja-JP", {
-			year: "numeric",
-			month: "2-digit",
-			day: "2-digit",
-			hour: "2-digit",
-			minute: "2-digit",
-		});
-		console.log(`更新しました (${formattedDate})`);
-		setUpdateMessage(`更新しました (${formattedDate})`);
-		setShowMessage(true);
-		setTimeout(() => setShowMessage(false), 2300); // 3秒後にメッセージを非表示に
-	};
+	// // 更新メッセージを表示し、指定された時間後に非表示にする関数
+	// const displayUpdateMessage = () => {
+	// 	const now = new Date();
+	// 	const formattedDate = now.toLocaleString("ja-JP", {
+	// 		year: "numeric",
+	// 		month: "2-digit",
+	// 		day: "2-digit",
+	// 		hour: "2-digit",
+	// 		minute: "2-digit",
+	// 	});
+	// 	console.log(`更新しました (${formattedDate})`);
+	// 	setUpdateMessage(`更新しました (${formattedDate})`);
+	// 	setShowMessage(true);
+	// 	setTimeout(() => setShowMessage(false), 2300); // 3秒後にメッセージを非表示に
+	// };
 
 	// メモの内容を取得する処理
 	useEffect(() => {
@@ -151,7 +151,7 @@ const Memo = () => {
 					});
 					console.log("Updated memo");
 					console.log(res.data);
-					displayUpdateMessage(); // メモ更新時にメッセージを表示
+					// displayUpdateMessage(); // メモ更新時にメッセージを表示
 				} catch (err) {
 					console.error(err);
 				}
@@ -285,7 +285,7 @@ const Memo = () => {
 					onChange={() => handleOnChangeBlockNote(editor.document)}
 				/>
 			</Box>
-			{/* 保存タイミング表示用 */}
+			{/* 保存タイミング表示用
 			<Snackbar
 				open={showMessage}
 				message={updateMessage}
@@ -299,7 +299,7 @@ const Memo = () => {
 					},
 				}}
 			/>
-			{/* <MarkdownViewer markdownText={description}></MarkdownViewer>  */}
+			<MarkdownViewer markdownText={description}></MarkdownViewer>  */}
 		</>
 	);
 };

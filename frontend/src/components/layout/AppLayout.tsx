@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Box } from "@mui/material";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import authUtils from "../../utils/authUtil";
 import SideBar from "../common/Sidebar";
 import { userStateAtom } from "../../atoms/userAtoms";
@@ -12,17 +12,7 @@ import "../../App.css";
 const AppLayout = () => {
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
-	const [user, setUser] = useRecoilState(userStateAtom);
-
-	// const updateRootStyle = () => {
-	// 	// ルート要素を取得
-	// 	const rootElement = document.getElementById("root");
-
-	// 	// スタイルを動的に変更
-	// 	if (rootElement) {
-	// 		rootElement.style.margin = "0"; // `0 auto`を削除する
-	// 	}
-	// };
+	const [__user, setUser] = useRecoilState(userStateAtom);
 
 	useEffect(() => {
 		//JWTを持ってるのか確認する。
