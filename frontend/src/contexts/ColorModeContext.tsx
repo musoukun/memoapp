@@ -1,13 +1,34 @@
-import React, { createContext, useContext, useMemo, useState } from "react";
-import { ThemeProvider as MuiThemeProvider } from "@mui/material/styles";
-import { responsiveLightTheme, responsiveDarkTheme } from "../theme";
+// src/contexts/ColorModeContext.tsx
+import React, {
+	createContext,
+	useContext,
+	ReactNode,
+	useMemo,
+	useState,
+} from "react";
+import { createTheme, ThemeProvider, useMediaQuery } from "@mui/material";
 
-const ColorModeContext = createContext({ toggleColorMode: () => {} });
+interface ColorModeContextType {
+	toggleColorMode: () => void;
+}
 
-export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({
+const ColorModeContext = createContext<ColorModeContextType>({
+	toggleColorMode: () => {},
+});
+
+export const useColorMode = () => useContext(ColorModeContext);
+
+interface ColorModeProviderProps {
+	children: ReactNode;
+}
+
+export const ColorModeProvider: React.FC<ColorModeProviderProps> = ({
 	children,
 }) => {
-	const [mode, setMode] = useState<"light" | "dark">("light");
+	const prefersDarkMode = useMediaQuery("(prefers-color-scheme: dark)");
+	const [mode, setMode] = useState<"light" | "dark">(
+		prefersDarkMode ? "dark" : "light"
+	);
 
 	const colorMode = useMemo(
 		() => ({
@@ -20,15 +41,19 @@ export const ColorModeProvider: React.FC<{ children: React.ReactNode }> = ({
 		[]
 	);
 
-	const theme = useMemo(() => {
-		return mode === "light" ? responsiveLightTheme : responsiveDarkTheme;
-	}, [mode]);
+	const theme = useMemo(
+		() =>
+			createTheme({
+				palette: {
+					mode,
+				},
+			}),
+		[mode]
+	);
 
 	return (
 		<ColorModeContext.Provider value={colorMode}>
-			<MuiThemeProvider theme={theme}>{children}</MuiThemeProvider>
+			<ThemeProvider theme={theme}>{children}</ThemeProvider>
 		</ColorModeContext.Provider>
 	);
 };
-
-export const useColorMode = () => useContext(ColorModeContext);

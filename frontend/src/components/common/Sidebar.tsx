@@ -8,9 +8,8 @@ import {
 	Typography,
 	useTheme,
 } from "@mui/material";
-import { AddBoxOutlined, Favorite, LogoutOutlined } from "@mui/icons-material";
+import { AddBoxOutlined, LogoutOutlined } from "@mui/icons-material";
 import { IconButton } from "@mui/material";
-import assets from "../../assets";
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
@@ -23,10 +22,9 @@ import {
 	updateMemoflgAtom,
 } from "../../atoms/memoAtoms";
 import { Memo } from "../../types/api";
-import { descriptionStateAtom } from "../../atoms/descriptionAtom";
-import { favoriteStateAtom } from "../../atoms/favoliteAtom";
-import { titleStateAtom } from "../../atoms/titleAtom";
 import { AxiosResponse } from "axios";
+import { titleStateAtom } from "../../atoms/titleAtom";
+import { iconStateAtom } from "../../atoms/iconStateAtom";
 
 const Sidebar = () => {
 	const theme = useTheme();
@@ -35,12 +33,11 @@ const Sidebar = () => {
 
 	const user = useRecoilValue(userStateAtom); // ユーザー情報の状態を取得
 	const [memos, setMemos] = useRecoilState(memosStateAtom); // メモ一覧の状態を取得
-
-	const [createMemoflg, setCreateMemoflg] = useRecoilState(createMemoflgAtom); // メモ作成フラグの状態を取得
-	const [updateMemoflg, setUpdateMemoflg] = useRecoilState(updateMemoflgAtom); // メモ更新フラグの状態を取得
-	const [deleteMemoflg, setDeleteMemoflg] = useRecoilState(createMemoflgAtom); // メモ削除フラグの状態を取得
-
-	const { id } = useParams(); // メモのIDを取得 useParamsはパラメータを取得するためのフック
+	const title = useRecoilValue(titleStateAtom); // メモのタイトルの状態を取得
+	const icon = useRecoilValue(iconStateAtom); // メモのアイコンの状態を取得
+	const favorite = useRecoilValue(iconStateAtom); // メモのお気に入りの状態を取得
+	const { id } = useParams(); // メモのIDを取得 useParamsはURLのパラメータを取得するためのフック
+	//つまり、違うNoteに遷移したら、そのNoteのIDを取得することができる。
 
 	const logout = () => {
 		localStorage.removeItem("token");
@@ -70,21 +67,18 @@ const Sidebar = () => {
 			try {
 				const res: AxiosResponse<Memo[]> = await memoApi.getAll();
 				setMemos(res.data);
-				setDeleteMemoflg(false);
-				setUpdateMemoflg(false);
-				setCreateMemoflg(false);
 			} catch (err: any) {
 				alert(err.status + ": " + err.statusText);
 			}
 		};
 		getMemos();
-	}, [deleteMemoflg, createMemoflg, updateMemoflg]);
+	}, [title, favorite, icon]);
 
 	useEffect(() => {
 		// メモのIDが変更されたときにアクティブなメモのインデックスを更新
 		const index = memos.findIndex((memo: any) => memo.id === id);
 		setActiveIndex(index);
-	}, [navigate, updateMemoflg, createMemoflg, deleteMemoflg]);
+	}, [navigate, id]);
 
 	return (
 		<>
