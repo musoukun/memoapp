@@ -1,5 +1,6 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Box, Container, ThemeProvider } from "@mui/material";
+import { Box, Container } from "@mui/material";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import notionLogo from "../../assets/notion-1-1.svg";
@@ -10,8 +11,8 @@ import "../../App.css";
 
 const AuthLayout = () => {
 	const navigate = useNavigate();
-	const [loading, setLoading] = useState(true);
-	const [user, setUser] = useRecoilState(userStateAtom);
+	const [__loading, setLoading] = useState(true);
+	const [__user, setUser] = useRecoilState(userStateAtom);
 
 	useEffect(() => {
 		//JWTを持ってるのか確認する。

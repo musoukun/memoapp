@@ -2,7 +2,7 @@
 /* eslint-disable prefer-const */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Box } from "@mui/system";
-import { IconButton, Snackbar, TextField, useTheme } from "@mui/material";
+import { IconButton, TextField, useTheme } from "@mui/material";
 import {
 	DeleteOutline,
 	StarBorderOutlined,
@@ -12,9 +12,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import memoApi from "../../api/memoApi";
 import { useRecoilState } from "recoil";
-import { memoStateAtom, memosStateAtom } from "../../atoms/memoAtoms";
+import { memosStateAtom } from "../../atoms/memoAtoms";
 import { AxiosResponse } from "axios";
-import { DeleteMemoResponse, Memo } from "../../types/api.ts";
+import type { DeleteMemoResponse, Memo } from "../../types/api.ts";
 import EmojiPicker from "../common/EmojiPicker";
 import { titleStateAtom } from "../../atoms/titleAtom.ts";
 import {
@@ -28,29 +28,39 @@ import { Block, BlockNoteEditor, PartialBlock } from "@blocknote/core";
 import { BlockNoteView } from "@blocknote/react";
 import "@blocknote/react/style.css";
 
-import mantine from "@mantine/core"; //必要！
 import "@mantine/core/styles.css"; //必要！
+
+// 以前の値を追跡するカスタムフック
+// function usePrevious(value: string | boolean | undefined) {
+// 	const ref = useRef<string | boolean | undefined>();
+// 	useEffect(() => {
+// 		ref.current = value;
+// 	});
+// 	return ref.current;
+// }
 
 const Memo = () => {
 	const navigate = useNavigate();
 	const { id } = useParams();
 	const [icon, setIcon] = useState<string>("");
 	const [memos, setMemos] = useRecoilState(memosStateAtom); // メモ一覧の状態を取得
-	const [__memo, setMemo] = useRecoilState(memoStateAtom); // 現在選択中のメモの状態を取得
+	// const [__memo, setMemo] = useRecoilState(memoStateAtom); // 現在選択中のメモの状態を取得
 
 	const [title, setTitle] = useRecoilState(titleStateAtom); // メモのタイトルの状態を取得
 	const [description, setDescription] = useRecoilState(descriptionStateAtom); // メモの本文の状態を取得
-
 	const [favorite, setFavorite] = useRecoilState(favoriteStateAtom); // お気に入りの状態を取得
+	// 以前の値を追跡
+	// const prevTitle = usePrevious(title);
+	// const prevDescription = usePrevious(description);
+	// const prevFavorite = usePrevious(favorite);
+	// const prevIcon = usePrevious(icon);
 
-	// const [markdown, setMarkdown] = useState(description); // マークダウンの状態を取得
-
-	const [debounceTime, setDebounceTime] = useState<number>(3500); // デバウンス時間を状態として保存
+	const [debounceTime, setDebounceTime] = useState<number>(1300); // デバウンス時間を状態として保存
 	const timer = useRef<ReturnType<typeof setTimeout> | null>(null); // タイマーを保存するためのref
 
 	// 更新メッセージと表示状態を管理するステートを追加
-	const [updateMessage, setUpdateMessage] = useState<string>("");
-	const [showMessage, setShowMessage] = useState<boolean>(false);
+	// const [updateMessage, setUpdateMessage] = useState<string>("");
+	// const [showMessage, setShowMessage] = useState<boolean>(false);
 
 	// メモの初期内容を取得する処理
 	const [initialContent, setInitialContent] = useRecoilState(
@@ -78,21 +88,14 @@ const Memo = () => {
 		const getMemo = async () => {
 			try {
 				const res: AxiosResponse<Memo> = await memoApi.show(id!); // Add '!' to assert that id is not undefined
-				setMemo(res.data); // 現在選択中のメモの状態を更新
-				setTitle(res.data.title); // タイトルと本文の設定
-				setDescription(res.data.description); // タイトルと本文の設定
-				setIcon(res.data.icon); // アイコンの設定
-				setFavorite(res.data.favorite); // お気に入りの設定
 
-				return res.data;
-			} catch (err) {
-				console.error(err);
-			}
-		};
+				await setTitle(res.data.title); // タイトルと本文の設定
+				await setDescription(res.data.description); // タイトルと本文の設定
+				await setIcon(res.data.icon); // アイコンの設定
+				await setFavorite(res.data.favorite); // お気に入りの設定
 
-		const inittialBlockNote = async () => {
-			// blocknoteの初期内容を設定
-			if (description === "{}" || description === "") {
+				console.log("メモを取得", res.data);
+
 				const init: PartialBlock[] = [
 					{
 						type: "paragraph",
@@ -106,18 +109,18 @@ const Memo = () => {
 						],
 					},
 				];
-				console.log("init", init);
-				setInitialContent(init);
-				return;
+
+				// 初回ロード時は、メモの内容を初期化
+				description === "{}" || description === ""
+					? await setInitialContent(init)
+					: await JSON.parse(description);
+				return res.data;
+			} catch (err) {
+				console.error(err);
 			}
-			console.log("description", description);
-			setInitialContent(JSON.parse(description) as PartialBlock[]);
 		};
 
-		// getMemoの処理が終わるのを待ってからinittialBlockNoteを実行
-		getMemo().then(() => {
-			inittialBlockNote();
-		});
+		getMemo();
 	}, [id]); // idはuseParamsで取得していてURLのUUIDの変更を検知している
 
 	// 新しいBlocknoteエディタインスタンスを作成
@@ -132,33 +135,32 @@ const Memo = () => {
 	// デバウンスとは、一定時間内に複数回のイベントが発生した場合、最後のイベントのみを実行する処理
 	// タイトルと本文の内容とお気に入りの更新を統合した関数
 	// タイトル、本文、お気に入りの更新があるたびに呼び出される
-	useEffect(() => {
-		const updateMemoContent = (
-			newTitle: string,
-			newDescription: string,
-			favorite?: boolean
-		) => {
-			if (timer.current) clearTimeout(timer.current); // タイマーが存在する場合はクリア
+	const updateMemoContent = (
+		newTitle: string,
+		newDescription: string,
+		favorite?: boolean
+	) => {
+		// 既存のタイマーがあればクリアする
+		if (timer.current) {
+			clearTimeout(timer.current);
+		}
 
-			timer.current = setTimeout(async () => {
-				// 一定時間後に実行
-				try {
-					const res: AxiosResponse<Memo> = await memoApi.update(id!, {
-						// !マークはidがnullでないことをアサートする
-						title: newTitle,
-						description: newDescription,
-						favorite: favorite,
-					});
-					console.log("Updated memo");
-					console.log(res.data);
-					// displayUpdateMessage(); // メモ更新時にメッセージを表示
-				} catch (err) {
-					console.error(err);
-				}
-			}, debounceTime); //debounceTime は state で管理
-		};
-		updateMemoContent(title, description, favorite);
-	}, [title, description, favorite]);
+		timer.current = setTimeout(async () => {
+			// 一定時間後に実行
+			try {
+				const res: AxiosResponse<Memo> = await memoApi.update(id!, {
+					// !マークはidがnullでないことをアサートする
+					title: newTitle,
+					description: newDescription,
+					favorite: favorite,
+				});
+				console.log("メモを更新", res.data);
+				// displayUpdateMessage(); // メモ更新時にメッセージを表示
+			} catch (err) {
+				console.error(err);
+			}
+		}, debounceTime); //debounceTime は state で管理
+	};
 
 	//Noteに関連するイベント↓
 	// newIcon は選択した絵文字
@@ -166,8 +168,8 @@ const Memo = () => {
 		let tmp = [...memos]; // Sidebarのメモ一覧のコピーを作成
 		const index = tmp.findIndex((memo) => memo.id === id); // 選択中のメモのインデックスを取得
 		tmp[index] = { ...tmp[index], icon: newIcon }; // 選択中のメモのアイコンを更新
-		setIcon(newIcon); // アイコンの状態を更新
 		setMemos(tmp); // メモ一覧の状態を更新
+		setIcon(newIcon); // アイコンの状態を更新
 
 		// メモのアイコンを更新するAPIを呼び出す
 		try {
@@ -183,12 +185,24 @@ const Memo = () => {
 	// タイトルの変更イベント
 	const handleTitleOnChange = (newTitle: string) => {
 		setTitle(newTitle); // タイトルの状態を更新
+		updateMemoContent(newTitle, description, favorite); // メモの内容を更新
+		let tmp = [...memos]; // Sidebarのメモ一覧のコピーを作成
+		const index = tmp.findIndex((memo) => memo.id === id); // 選択中のメモのインデックスを取得
+		tmp[index] = { ...tmp[index], title: newTitle }; // 選択中のメモのアイコンを更新
+		setMemos(tmp); // メモ一覧の状態を更新
 	};
 
 	// メモの内容の変更イベント
 	const handleOnChangeBlockNote = (document: Block[]) => {
 		const json = JSON.stringify(document);
 		setDescription(json);
+		updateMemoContent(title, description, favorite); // メモの内容を更新
+	};
+	// お気に入りの変更イベント
+	const handleFavoriteOnClick = async (newFavorite: boolean) => {
+		setDebounceTime(1000); // デバウンス時間を短くする
+		setFavorite(newFavorite); // お気に入りの状態を更新
+		updateMemoContent(title, description, newFavorite); // メモの内容を更新
 	};
 
 	// メモの削除処理
@@ -214,11 +228,6 @@ const Memo = () => {
 		}
 	};
 
-	const handleFavoriteOnClick = async (newFavorite: boolean) => {
-		setDebounceTime(1000); // デバウンス時間を短くする
-		setFavorite(newFavorite); // お気に入りの状態を更新
-	};
-
 	const theme = useTheme();
 	// editor が undefined の場合は、"Loading content..." を表示
 	// blocknote の初期内容がロードされるまで表示される
@@ -233,7 +242,7 @@ const Memo = () => {
 					position: "absolute",
 					top: 0,
 					right: 0,
-					padding: "10px",
+					padding: "1px",
 					zIndex: 100,
 				}}
 			>
@@ -245,7 +254,8 @@ const Memo = () => {
 					alignItems: "center",
 					width: "100%",
 					// backgroundColor: "red",
-					padding: "10px 20px",
+					padding: "none",
+					marginLeft: 12,
 				}}
 			>
 				<IconButton onClick={() => handleFavoriteOnClick(!favorite)}>
@@ -255,8 +265,8 @@ const Memo = () => {
 					<DeleteOutline />
 				</IconButton>
 			</Box>
-			<Box sx={{ padding: "10px 25px" }}>
-				<Box sx={{ padding: 1 }}>
+			<Box sx={{ padding: "none", marginLeft: 12 }}>
+				<Box sx={{ padding: 1, height: "1" }}>
 					<EmojiPicker icon={icon} onChange={onIconChange} />
 				</Box>
 				<TextField
@@ -266,7 +276,6 @@ const Memo = () => {
 					placeholder="無題"
 					onChange={(e) => handleTitleOnChange(e.target.value)}
 					sx={{
-						boxSizing: "content-box",
 						".MuiOutlinedInput-notchedOutline": {
 							border: "none",
 						},
@@ -274,11 +283,12 @@ const Memo = () => {
 							fontSize: "2rem",
 							fontWeight: 700,
 						},
-						padding: 0,
+						padding: "none",
+						marginLeft: 3,
 					}}
 				></TextField>
 			</Box>
-			<Box sx={{ padding: "10px 1px" }}>
+			<Box sx={{ padding: "none", marginLeft: 12 }}>
 				<BlockNoteView
 					theme={theme.palette.mode === "dark" ? "dark" : "light"}
 					editor={editor}

@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Box } from "@mui/material";
 import { Outlet, useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import authUtils from "../../utils/authUtil";
 import SideBar from "../common/Sidebar";
 import { userStateAtom } from "../../atoms/userAtoms";
@@ -28,7 +29,6 @@ const AppLayout = () => {
 			}
 		};
 		checkAuth();
-		// updateRootStyle();
 	}, [navigate]);
 
 	return loading ? (

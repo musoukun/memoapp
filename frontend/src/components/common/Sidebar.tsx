@@ -10,21 +10,18 @@ import {
 } from "@mui/material";
 import { AddBoxOutlined, LogoutOutlined } from "@mui/icons-material";
 import { IconButton } from "@mui/material";
-import { useContext, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { useRecoilState, useRecoilValue } from "recoil";
 import { userStateAtom } from "../../atoms/userAtoms";
 import { Link } from "react-router-dom";
 import memoApi from "../../api/memoApi";
-import {
-	createMemoflgAtom,
-	memosStateAtom,
-	updateMemoflgAtom,
-} from "../../atoms/memoAtoms";
+import { memosStateAtom } from "../../atoms/memoAtoms";
 import { Memo } from "../../types/api";
 import { AxiosResponse } from "axios";
 import { titleStateAtom } from "../../atoms/titleAtom";
 import { iconStateAtom } from "../../atoms/iconStateAtom";
+import { favoriteStateAtom } from "../../atoms/favoliteAtom";
 
 const Sidebar = () => {
 	const theme = useTheme();
@@ -33,9 +30,11 @@ const Sidebar = () => {
 
 	const user = useRecoilValue(userStateAtom); // ユーザー情報の状態を取得
 	const [memos, setMemos] = useRecoilState(memosStateAtom); // メモ一覧の状態を取得
-	const title = useRecoilValue(titleStateAtom); // メモのタイトルの状態を取得
-	const icon = useRecoilValue(iconStateAtom); // メモのアイコンの状態を取得
-	const favorite = useRecoilValue(iconStateAtom); // メモのお気に入りの状態を取得
+
+	const [title, __setTitle] = useRecoilState(titleStateAtom); // メモのタイトルの状態を取得
+	const [icon, __setIcon] = useRecoilState(iconStateAtom); // メモのアイコンの状態を取得
+	const [favorite, __setFavorite] = useRecoilState(favoriteStateAtom); // お気に入りの状態を取得
+
 	const { id } = useParams(); // メモのIDを取得 useParamsはURLのパラメータを取得するためのフック
 	//つまり、違うNoteに遷移したら、そのNoteのIDを取得することができる。
 
@@ -52,9 +51,9 @@ const Sidebar = () => {
 
 			// メモ一覧に新しく作成したメモを追加
 			const newMemos = [...memos, res.data];
-			setMemos(newMemos);
+			await setMemos(newMemos);
 
-			navigate(`/memo/${res.data.id}`);
+			await navigate(`/memo/${res.data.id}`);
 		} catch (err: any) {
 			alert(err.status + ": " + err.statusText);
 		}
@@ -71,7 +70,7 @@ const Sidebar = () => {
 			}
 		};
 		getMemos();
-	}, [title, favorite, icon]);
+	}, [title, icon, favorite]);
 
 	useEffect(() => {
 		// メモのIDが変更されたときにアクティブなメモのインデックスを更新

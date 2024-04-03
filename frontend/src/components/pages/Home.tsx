@@ -4,15 +4,13 @@ import { Box } from "@mui/system";
 import { useState } from "react";
 import memoApi from "../../api/memoApi";
 import { useNavigate } from "react-router-dom";
-import { useRecoilState, useRecoilValue } from "recoil";
-import { userStateAtom } from "../../atoms/userAtoms";
-import { createMemoflgAtom } from "../../atoms/memoAtoms";
+// import { useRecoilValue } from "recoil";
+// import { userStateAtom } from "../../atoms/userAtoms";
 
 const Home = () => {
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(false);
-	const user = useRecoilValue(userStateAtom);
-	const [createMemoflg, setCreateMemoflg] = useRecoilState(createMemoflgAtom);
+	// const user = useRecoilValue(userStateAtom);
 
 	const createMemo = async () => {
 		console.log("create memo");
@@ -22,7 +20,6 @@ const Home = () => {
 			const res = await memoApi.create();
 			console.log(res.data);
 			navigate(`/memo/${res.data.id}`);
-			setCreateMemoflg(true);
 		} catch (err: any) {
 			// エラー処理
 			alert(err.status + ": " + err.statusText);

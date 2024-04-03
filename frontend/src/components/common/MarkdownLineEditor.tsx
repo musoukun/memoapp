@@ -15,13 +15,12 @@ import {
 	SortableContext,
 	arrayMove,
 	verticalListSortingStrategy,
-	useSortable,
 } from "@dnd-kit/sortable";
-import { CSS, add } from "@dnd-kit/utilities";
+
 import ReactMarkdown from "react-markdown";
-import { Box, TextField, useTheme } from "@mui/material";
+import { Box, TextField } from "@mui/material";
 import { useRecoilState } from "recoil";
-import { memoLineAtom, memoLinesAtom } from "../../atoms/memoLineAtom";
+import { memoLinesAtom } from "../../atoms/memoLineAtom";
 import { MemoLine } from "../../types/memoLine.ts";
 import textFieldStyles from "../../style/textFieldStyles.ts";
 import reactMarkdownStyles from "../../style/reactMarkdownStyles.ts";
@@ -31,8 +30,6 @@ import { descriptionStateAtom } from "../../atoms/descriptionAtom.ts";
 // ブラウザのdark modeにあわせてstyleを設定したい
 
 export const MarkdownLineEditor = () => {
-	const theme = useTheme();
-
 	// テキストエリアのリストを管理するための状態
 	const [memoLines, setMemoLines] = useRecoilState(memoLinesAtom);
 	const [description, setDescription] = useRecoilState(descriptionStateAtom);
@@ -45,7 +42,7 @@ export const MarkdownLineEditor = () => {
 		null
 	);
 
-	const [debounceTime, setDebounceTime] = useState<number>(700); // デバウンス時間を状態として保存
+	const [debounceTime, __setDebounceTime] = useState<number>(700); // デバウンス時間を状態として保存
 	const timer = useRef<ReturnType<typeof setTimeout> | null>(null); // タイマーを保存するためのref
 
 	// 新しいメモラインを一時的に保存するための状態
@@ -55,23 +52,6 @@ export const MarkdownLineEditor = () => {
 	const memoLineRefs = useRef<(HTMLDivElement | null)[]>([]);
 	// テキストエリアの参照を保持するref
 	const textFieldRef = useRef<HTMLTextAreaElement>(null);
-
-	const setValue = (id: string, newText: any) => {
-		// テキストエリアの値を更新する関数
-		setMemoLines(
-			(
-				memoLines // memoLinesのコピーを作成
-			) =>
-				memoLines.map(
-					(
-						memoLine // memoLinesの各要素に対して以下の処理を行う
-					) =>
-						memoLine.id === id
-							? { ...memoLine, text: newText }
-							: memoLine // idが一致する要素のtextを更新
-				)
-		);
-	};
 
 	useEffect(() => {
 		// memoLines.textを順番に取得して、改行コード区切りでdescriptionにセットする関数
@@ -115,7 +95,6 @@ export const MarkdownLineEditor = () => {
 	// listeners: ドラッグアンドドロップのためのリスナー
 	// setNodeRef: ドラッグアンドドロップのためのref(参照先の要素を設定するための関数)
 	// transform: ドラッグアンドドロップのためのtransform(要素の位置を変更するための関数)
-	const { attributes, transform, transition } = useSortable({ id: "1" });
 
 	// ドラッグアンドドロップのためのセンサーを設定
 	const sensors = useSensors(
@@ -124,10 +103,6 @@ export const MarkdownLineEditor = () => {
 	);
 
 	// ドラッグアンドドロップのためのスタイル
-	const style = {
-		transform: CSS.Transform.toString(transform),
-		transition,
-	};
 
 	// useEffectを使用して、フォーカスを管理します
 	useEffect(() => {

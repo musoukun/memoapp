@@ -35,3 +35,8 @@ export const deleteMemoflgAtom = atom<boolean>({
 	key: "delete",
 	default: false,
 });
+
+export const updateProgressAtom = atom<boolean>({
+	key: "updateProgress",
+	default: false,
+});
