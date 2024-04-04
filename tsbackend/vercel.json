@@ -2,15 +2,12 @@
   "version": 2,
   "builds": [
     {
-      "src": "dist/app.js",
-      "use": "@vercel/node"
+      "src": "package.json",
+      "use": "@vercel/node",
+      "config": { "includeFiles": ["prisma/schema.prisma"] }
     }
   ],
   "routes": [
-    {
-      "src": "/.*",
-      "dest": "/dist/app.js",
-      "methods": ["GET", "POST"]
-    }
+    { "src": "/(.*)", "dest": "/dist/app.js" }
   ]
 }
