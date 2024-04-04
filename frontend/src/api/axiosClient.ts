@@ -3,7 +3,8 @@ import queryString from "query-string";
 
 // const BASE_URL = "http://localhost:3000/api"; //ruby on rails backend
 // const BASE_URL = "http://localhost:5000/api"; //typescript backend
-const BASE_URL = "https://tsbackend-b2ztukr2v-musoukuns-projects.vercel.app/"; //typescript backend
+const BASE_URL =
+	"https://tsbackend-b2ztukr2v-musoukuns-projects.vercel.app/api"; //typescript backend
 
 const getToken = (): string | null => localStorage.getItem("token");
 
