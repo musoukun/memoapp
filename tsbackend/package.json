@@ -4,8 +4,11 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "xecho \"Error: no test specified\" && exit 1",
-    "start": "nodemon --exec ts-node src/app.ts"
+    "test": "nodemon --exec ts-node src/app.ts",
+    "build:watch": "npx tsc --watch",
+    "start": "node dist/index.js",
+    "start:dev": "nodemon dist/index.js",
+    "dev": "ts-node-dev --respawn src/index.ts"
   },
   "author": "",
   "license": "ISC",
