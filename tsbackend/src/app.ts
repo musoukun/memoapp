@@ -11,11 +11,11 @@ const PORT = 5000;
 app.use(cors());
 
 // 特定のオリジンのみを許可する場合の設定例;
-app.use(
-	cors({
-		origin: ["http://localhost:5173", "https://memoapp-roan.vercel.app/"],
-	})
-);
+// app.use(
+// 	cors({
+// 		origin: ["http://localhost:5173", "https://*.vercel.app/"],
+// 	})
+// );
 
 app.use(logger("dev"));
 app.use(express.json());
