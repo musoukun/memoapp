@@ -22,8 +22,8 @@ import { Box, TextField } from "@mui/material";
 import { useRecoilState } from "recoil";
 import { memoLinesAtom } from "../../atoms/memoLineAtom";
 import { MemoLine } from "../../types/memoLine.ts";
-import textFieldStyles from "../../style/textFieldStyles.ts";
-import reactMarkdownStyles from "../../style/reactMarkdownStyles.ts";
+import textFieldStyles from "../../styles/textFieldStyles.ts";
+import reactMarkdownStyles from "../../styles/reactMarkdownStyles.ts";
 import { descriptionStateAtom } from "../../atoms/descriptionAtom.ts";
 
 // スタイルシート（CSS in JSの形式で示しますが、普通のCSSとしても同じことができます）
