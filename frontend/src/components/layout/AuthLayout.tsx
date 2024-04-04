@@ -3,7 +3,7 @@
 import { Box, Container } from "@mui/material";
 import { Outlet, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
-import notionLogo from "../../assets/notion-1-1.svg";
+import notionLogo from "../../assets/markdown.svg";
 import authUtils from "../../utils/authUtil";
 import { userStateAtom } from "../../atoms/userAtoms";
 import { useRecoilState } from "recoil";
@@ -44,7 +44,7 @@ const AuthLayout = () => {
 					alt=""
 					style={{ width: 100, height: 100, marginBottom: 3 }}
 				/>
-				Notionクローン開発
+				Markdownエディタ開発＠BlockNote
 			</Box>
 			<Outlet />
 		</Container>
