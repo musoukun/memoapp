@@ -105,9 +105,7 @@ const Memo = () => {
 				setTitle(res.data.title); // タイトルと本文の設定
 				// setDescription(res.data.description); // タイトルと本文の設定
 				// 初回ロード時は、メモの内容を初期化
-				res.data.description === "{}" ||
-				res.data.description === "" ||
-				JSON.stringify(res.data.description) === "{}"
+				res.data.description === "{}" || res.data.description === ""
 					? setInitialContent(init)
 					: setInitialContent(JSON.parse(res.data.description));
 				setIcon(res.data.icon); // アイコンの設定

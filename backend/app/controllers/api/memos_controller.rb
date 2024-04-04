@@ -49,6 +49,22 @@ module Api
     def update
       logger.debug("update")
       logger.debug(memo_params)
+    
+      @memo.title = memo_params[:title].blank? ? "無題" : memo_params[:title]
+      @memo.description = memo_params[:description].blank? ? "ここに自由に記入してください" : memo_params[:description]
+    
+      if memo_params[:favorite].present? && @memo.favorite != memo_params[:favorite]
+        favorites = Memo.where(user_id: @memo.user_id, favorite: true).where.not(id: @memo.id)
+    
+        if memo_params[:favorite]
+          @memo.favorite_position = favorites.count
+        else
+          favorites.each_with_index do |memo, index|
+            memo.update(favorite_position: index)
+          end
+        end
+      end
+    
       if @memo.update(memo_params)
         render json: @memo
       else

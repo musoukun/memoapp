@@ -38,30 +38,29 @@ const Login = () => {
 
 		try {
 			const res = await authApi.login({
-				username,
-				password,
+				user: {
+					username,
+					password,
+				},
 			});
-			if (res.status === 201) {
+			if (res.status === 200) {
 				localStorage.setItem("token", res.data.token);
 				setLoading(false);
 				navigate("/");
 			}
 		} catch (err: any) {
-			// バックエンドから返されたエラーメッセージの処理
 			setLoading(false);
-			const errors = err.data;
-			console.log(errors);
-			errors.forEach((e: any) => {
-				if (e.errors) {
-					if (e.username) {
-						setUsernameErrText(e.msg); // ユーザー名エラー
-					}
-					if (e.password) {
-						setPasswordErrText(e.msg); // パスワードエラー
-					}
-					// 確認パスワードのエラーはバックエンドでチェックしないのでフロントエンドのロジックに依存
+			// バックエンドから返されたエラーメッセージの処理
+			if (err.data.errors) {
+				const errors = err.data.errors;
+				if (errors.username) {
+					setUsernameErrText(errors.username.join(", ")); // ユーザー名エラー
 				}
-			});
+				if (errors.password) {
+					setPasswordErrText(errors.password.join(", ")); // パスワードエラー
+				}
+				// 確認パスワードのエラーはバックエンドでチェックしないのでフロントエンドのロジックに依存
+			}
 		}
 	};
 

@@ -45,30 +45,29 @@ const Register = () => {
 
 		try {
 			const res = await authApi.register({
-				user: {
-					username,
-					password,
-					password_confirmation: passwordConfirmation,
-				},
+				username,
+				password,
+				confirmPassword: passwordConfirmation, // Declare or initialize the value of 'confirmPassword' property
 			});
-			if (res.status === 201) {
-				localStorage.setItem("token", res.data.token);
-				setLoading(false);
-				navigate("/");
-			}
-		} catch (err: any) {
 			setLoading(false);
-			// バックエンドから返されたエラーメッセージの処理
-			if (err.data.errors) {
-				const errors = err.data.errors;
-				if (errors.username) {
-					setUsernameErrText(errors.username.join(", ")); // ユーザー名エラー
+			localStorage.setItem("token", res.data.token);
+			navigate("/");
+		} catch (err: any) {
+			const errors = err.data;
+			console.log(errors);
+			errors.forEach((e: any) => {
+				console.log(e);
+				if (e.path === "username") {
+					setUsernameErrText(e.msg);
 				}
-				if (errors.password) {
-					setPasswordErrText(errors.password.join(", ")); // パスワードエラー
+				if (e.path === "password") {
+					setPasswordErrText(e.msg);
 				}
-				// 確認パスワードのエラーはバックエンドでチェックしないのでフロントエンドのロジックに依存
-			}
+				if (e.path === "confirmPassword") {
+					setConfirmPasswordErrText(e.msg);
+				}
+			});
+			setLoading(false);
 		}
 	};
 
