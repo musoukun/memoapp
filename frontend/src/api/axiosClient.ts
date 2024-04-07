@@ -1,4 +1,4 @@
-import axios, { AxiosResponse } from "axios";
+import axios, { AxiosError, AxiosResponse } from "axios";
 import queryString from "query-string";
 
 // const BASE_URL = "http://localhost:3000/api"; //ruby on rails backend
@@ -10,7 +10,8 @@ const getToken = (): string | null => localStorage.getItem("token");
 console.log(getToken);
 const axiosClient = axios.create({
 	baseURL: BASE_URL,
-	paramsSerializer: (params) => queryString.stringify({ params }),
+	paramsSerializer: (params: Record<string, any>) =>
+		queryString.stringify({ params }),
 });
 console.log(axiosClient);
 
@@ -30,7 +31,7 @@ axiosClient.interceptors.response.use(
 		// if (response && response.data) return response.data;
 		return response;
 	},
-	(err) => {
+	(err: AxiosError) => {
 		if (!err.response) {
 			return alert(err);
 		}

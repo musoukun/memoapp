@@ -12,12 +12,12 @@ const Login = () => {
 	const [usernameErrText, setUsernameErrText] = useState("");
 	const [passwordErrText, setPasswordErrText] = useState("");
 
-	const handleSubmit = async (e: any) => {
-		e.preventDefault();
+	const handleSubmit = async (element: React.FormEvent<HTMLFormElement>) => {
+		element.preventDefault();
 		setUsernameErrText("");
 		setPasswordErrText("");
 
-		const data = new FormData(e.target);
+		const data = new FormData(element.currentTarget);
 		const username = data.get("username") as string;
 		const password = data.get("password") as string;
 

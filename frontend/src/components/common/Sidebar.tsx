@@ -78,7 +78,7 @@ const Sidebar = () => {
 
 	useEffect(() => {
 		// メモのIDが変更されたときにアクティブなメモのインデックスを更新
-		const index = memos.findIndex((memo: any) => memo.id === id);
+		const index = memos.findIndex((memo: Memo) => memo.id === id);
 		setActiveIndex(index);
 	}, [navigate, id]);
 

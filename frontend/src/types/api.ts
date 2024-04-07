@@ -28,10 +28,53 @@ type UpdateMemoResponse = {
 type DeleteMemoResponse = {
 	message: string; // 例: 'メモが削除されました'
 };
+
+type RegisterParams = {
+	username: string;
+	password: string;
+	confirmPassword: string;
+};
+
+type LoginParams = {
+	username: string;
+	password: string;
+};
+
+type AuthResponse = {
+	token: string;
+};
+
+type ErrorResponse = {
+	message: string;
+};
+
+type UpdateMemoBody = {
+	title: string;
+	description: string;
+	favorite?: boolean;
+};
+
+type MemoPositionUpdateBody = {
+	memos: { id: string }[];
+};
+
+interface CustomRequest<T> {
+	user?: { id: string };
+	body: T | ReadableStream<Uint8Array> | null;
+	params: { memoId?: string };
+}
+
 export type {
 	Memo,
+	CustomRequest,
+	UpdateMemoBody,
+	MemoPositionUpdateBody,
 	GetMemoResponse,
 	UpdateMemoRequest,
 	UpdateMemoResponse,
 	DeleteMemoResponse,
+	RegisterParams,
+	LoginParams,
+	AuthResponse,
+	ErrorResponse,
 };

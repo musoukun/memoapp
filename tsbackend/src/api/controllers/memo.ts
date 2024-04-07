@@ -1,17 +1,23 @@
 /* eslint-disable prefer-const */
-import { PrismaClient } from "@prisma/client";
+import { Memo, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
+import { Request, Response } from "express";
+import { CustomRequest } from "../types/memo";
+import { MemoPositionUpdateBody } from "../types/memo";
 
-export const test = async (req, res) => {
+export const test = async (req: Request, res: Response) => {
 	res.send("memoAPI test");
 };
 
-export const create = async (req, res) => {
+export const create = async (
+	req: CustomRequest<{ position: number }>,
+	res: Response
+) => {
 	try {
 		const memoCount = await prisma.memo.count();
 		const memo = await prisma.memo.create({
 			data: {
-				userId: req.user.id, // PrismaではuserIdを使用します
+				userId: req.user!.id,
 				position: memoCount,
 			},
 		});
@@ -21,10 +27,10 @@ export const create = async (req, res) => {
 	}
 };
 
-export const getAll = async (req, res) => {
+export const getAll = async (req: CustomRequest<{}>, res: Response) => {
 	try {
 		const memos = await prisma.memo.findMany({
-			where: { userId: req.user.id },
+			where: { userId: req.user!.id },
 			orderBy: { position: "desc" },
 		});
 		res.status(200).json(memos);
@@ -33,8 +39,11 @@ export const getAll = async (req, res) => {
 	}
 };
 
-export const updatePosition = async (req, res) => {
-	const { memos } = req.body;
+export const updatePosition = async (
+	req: CustomRequest<MemoPositionUpdateBody>,
+	res: Response
+) => {
+	const { memos } = req.body as MemoPositionUpdateBody;
 	try {
 		await Promise.all(
 			memos.reverse().map((memo, index) =>
@@ -50,11 +59,11 @@ export const updatePosition = async (req, res) => {
 	}
 };
 
-export const getOne = async (req, res) => {
-	const memoId = req.params.memoId;
+export const getOne = async (req: CustomRequest<{}>, res: Response) => {
+	const memoId = req.params.memoId!;
 	try {
 		const memo = await prisma.memo.findUnique({
-			where: { id: memoId, userId: req.user.id },
+			where: { id: memoId, userId: req.user!.id },
 		});
 		if (!memo) return res.status(404).json("メモが存在しません");
 		res.status(200).json(memo);
@@ -63,9 +72,9 @@ export const getOne = async (req, res) => {
 	}
 };
 
-export const update = async (req, res) => {
-	const memoId = req.params.memoId;
-	let { title, description, favorite } = req.body;
+export const update = async (req: CustomRequest<Memo>, res: Response) => {
+	const memoId = req.params.memoId!;
+	let { title, description, favorite } = req.body as Memo;
 
 	title = title === "" ? "無題" : title;
 	description =
@@ -79,33 +88,6 @@ export const update = async (req, res) => {
 
 		if (!currentMemo) {
 			return res.status(404).json("メモが存在しません");
-		}
-
-		// お気に入りの更新がある場合、お気に入りの位置を更新する
-		if (favorite !== undefined && currentMemo.favorite !== favorite) {
-			// 現在のメモ以外でお気に入りされているメモを取得
-			const favorites = await prisma.memo.findMany({
-				where: {
-					userId: currentMemo.userId,
-					favorite: true,
-					NOT: { id: memoId },
-				},
-			});
-
-			// お気に入りに追加する場合、最後の位置に追加
-			if (favorite) {
-				req.body.favoritePosition = favorites.length;
-			} else {
-				// お気に入りから削除する場合、他のお気に入りの位置を更新
-				await Promise.all(
-					favorites.map((memo, index) =>
-						prisma.memo.update({
-							where: { id: memo.id },
-							data: { favoritePosition: index },
-						})
-					)
-				);
-			}
 		}
 
 		// メモの内容を更新
@@ -125,10 +107,10 @@ export const update = async (req, res) => {
 	}
 };
 
-export const getFavorites = async (req, res) => {
+export const getFavorites = async (req: CustomRequest<{}>, res: Response) => {
 	try {
 		const favorites = await prisma.memo.findMany({
-			where: { userId: req.user.id, favorite: true },
+			where: { userId: req.user!.id, favorite: true },
 			orderBy: { favoritePosition: "desc" },
 		});
 		res.status(200).json(favorites);
@@ -137,8 +119,8 @@ export const getFavorites = async (req, res) => {
 	}
 };
 
-export const deleteMemo = async (req, res) => {
-	const memoId = req.params.memoId;
+export const deleteMemo = async (req: CustomRequest<{}>, res: Response) => {
+	const memoId = req.params.memoId!;
 	try {
 		await prisma.memo.delete({
 			where: { id: memoId },
