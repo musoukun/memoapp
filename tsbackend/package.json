@@ -8,7 +8,7 @@
     "build": "prisma generate && rimraf dist && npx tsc",
     "test": "nodemon --exec ts-node src/app.ts",
     "build:watch": "npx tsc --watch",
-    "start": "node dist/app.js",
+    "start": "tsc && node dist/app.js",
     "start:dev": "nodemon dist/app.js",
     "dev": "ts-node-dev --respawn src/app.ts",
     "deploy": "npm run build && vercel --prod"
@@ -38,6 +38,7 @@
     "@types/crypto-js": "^4.2.2",
     "@types/jsonwebtoken": "^9.0.6",
     "crypto-js": "^4.2.0",
+    "dotenv": "^16.4.5",
     "express-list-endpoints": "^6.0.0",
     "jsonwebtoken": "^9.0.2",
     "rimraf": "^5.0.5",

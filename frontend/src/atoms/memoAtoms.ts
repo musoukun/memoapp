@@ -1,4 +1,4 @@
-import { atom } from "recoil";
+import { atom, selector } from "recoil";
 import { Memo } from "../types/api";
 
 // Memo一覧の状態を表すatom
@@ -15,6 +15,10 @@ export const memoStateAtom = atom<Memo>({
 		description: "",
 		icon: "",
 		favorite: false,
+		position: 0,
+		favoritePosition: 0,
+		createdAt: "",
+		updatedAt: "",
 	},
 });
 
@@ -39,4 +43,21 @@ export const deleteMemoflgAtom = atom<boolean>({
 export const updateProgressAtom = atom<boolean>({
 	key: "updateProgress",
 	default: false,
+});
+
+// メモの並び替えフラグのatom
+export const sortedMemosSelector = selector({
+	key: "sortedMemosSelector",
+	get: ({ get }) => {
+		const memos = get(memosStateAtom);
+		return [...memos].sort((a, b) => a.position - b.position);
+	},
+});
+// お気に入りのメモの状態を表すatom
+export const favoriteMemosSelector = selector({
+	key: "favoriteMemosSelector",
+	get: ({ get }) => {
+		const memos = get(sortedMemosSelector);
+		return memos.filter((memo) => memo.favorite);
+	},
 });

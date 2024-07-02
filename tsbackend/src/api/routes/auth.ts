@@ -1,5 +1,5 @@
-import express, { Request, Response } from "express";
-import { body } from "express-validator";
+import express, { NextFunction, Request, Response } from "express";
+import { body, validationResult } from "express-validator";
 import * as validation from "../handlers/validation";
 import * as userController from "../controllers/user";
 import * as tokenHandler from "../handlers/tokenHandler";
@@ -43,7 +43,16 @@ router.post(
 	body("password")
 		.isLength({ min: 8 })
 		.withMessage("パスワードは8文字以上である必要があります。"),
-	validation.validate,
+	(req: Request, res: Response, next: NextFunction) => {
+		const errors = validationResult(req);
+		if (!errors.isEmpty()) {
+			return res.status(400).json({
+				message: "バリデーションエラー",
+				errors: errors.array(),
+			});
+		}
+		next();
+	},
 	userController.login
 );
 

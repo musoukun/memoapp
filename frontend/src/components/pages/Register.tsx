@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import { Box, Button, TextField } from "@mui/material";
-import LoadingButton from "@mui/lab/LoadingButton";
+import LoadingButton from "../common/LoadingButton";
 import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import authApi from "../../api/authApi";
@@ -21,13 +20,13 @@ const Register = () => {
 	const [passwordErrText, setPasswordErrText] = useState("");
 	const [confirmPasswordErrText, setConfirmPasswordErrText] = useState("");
 
-	const handleSubmit = async (e: any) => {
+	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setUsernameErrText("");
 		setPasswordErrText("");
 		setConfirmPasswordErrText("");
 
-		const data = new FormData(e.target);
+		const data = new FormData(e.currentTarget);
 		const username = data.get("username") as string;
 		const password = data.get("password") as string;
 		const passwordConfirmation = data.get("confirmpassword") as string;
@@ -55,7 +54,7 @@ const Register = () => {
 			const res = await authApi.register({
 				username,
 				password,
-				confirmPassword: passwordConfirmation, // Declare or initialize the value of 'confirmPassword' property
+				confirmPassword: passwordConfirmation,
 			});
 			setLoading(false);
 			localStorage.setItem("token", res.data.token);
@@ -81,58 +80,108 @@ const Register = () => {
 	};
 
 	return (
-		<>
-			<Box component="form" onSubmit={handleSubmit}>
-				<TextField
-					label="Username"
-					fullWidth
-					margin="normal"
-					name="username"
-					required
-					disabled={loading}
-					error={usernameErrText !== ""}
-					helperText={usernameErrText}
-				/>
-				<TextField
-					label="Password"
-					fullWidth
-					type="password"
-					margin="normal"
-					name="password"
-					required
-					disabled={loading}
-					error={passwordErrText !== ""}
-					helperText={passwordErrText}
-				/>
-				<TextField
-					label="ConfirmPassword"
-					margin="normal"
-					fullWidth
-					name="confirmpassword"
-					required
-					disabled={loading}
-					error={confirmPasswordErrText !== ""}
-					helperText={confirmPasswordErrText}
-				/>
-				<LoadingButton
-					sx={{ mt: 3, mb: 2 }}
-					fullWidth
-					type="submit"
-					color="primary"
-					variant="outlined"
-					loading={loading}
-				>
-					Create Account
-				</LoadingButton>
-				<Button
-					component={Link}
+		<div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md ">
+			<form className="space-y-6 " onSubmit={handleSubmit}>
+				<div>
+					<label
+						htmlFor="username"
+						className="block text-sm font-medium text-gray-700"
+					>
+						Username
+					</label>
+					<div className="mt-1">
+						<input
+							id="username"
+							name="username"
+							type="text"
+							required
+							className={`appearance-none block w-full px-3 py-2 border ${
+								usernameErrText
+									? "border-red-300"
+									: "border-gray-300"
+							} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+							disabled={loading}
+						/>
+					</div>
+					{usernameErrText && (
+						<p className="mt-2 text-sm text-red-600">
+							{usernameErrText}
+						</p>
+					)}
+				</div>
+
+				<div>
+					<label
+						htmlFor="password"
+						className="block text-sm font-medium text-gray-700"
+					>
+						Password
+					</label>
+					<div className="mt-1">
+						<input
+							id="password"
+							name="password"
+							type="password"
+							required
+							className={`appearance-none block w-full px-3 py-2 border ${
+								passwordErrText
+									? "border-red-300"
+									: "border-gray-300"
+							} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+							disabled={loading}
+						/>
+					</div>
+					{passwordErrText && (
+						<p className="mt-2 text-sm text-red-600">
+							{passwordErrText}
+						</p>
+					)}
+				</div>
+
+				<div>
+					<label
+						htmlFor="confirmpassword"
+						className="block text-sm font-medium text-gray-700"
+					>
+						Confirm Password
+					</label>
+					<div className="mt-1">
+						<input
+							id="confirmpassword"
+							name="confirmpassword"
+							type="password"
+							required
+							className={`appearance-none block w-full px-3 py-2 border ${
+								confirmPasswordErrText
+									? "border-red-300"
+									: "border-gray-300"
+							} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
+							disabled={loading}
+						/>
+					</div>
+					{confirmPasswordErrText && (
+						<p className="mt-2 text-sm text-red-600">
+							{confirmPasswordErrText}
+						</p>
+					)}
+				</div>
+
+				<div>
+					<LoadingButton isLoading={loading} onClick={() => {}}>
+						Create Account
+					</LoadingButton>
+				</div>
+			</form>
+
+			<div className="mt-6">
+				<Link
 					to="/login"
-					sx={{ textTransform: "none" }}
+					className="text-sm font-medium text-blue-600 hover:text-blue-500"
 				>
 					すでにアカウントをもっている方はこちら
-				</Button>
-			</Box>
-		</>
+				</Link>
+			</div>
+		</div>
 	);
 };
 

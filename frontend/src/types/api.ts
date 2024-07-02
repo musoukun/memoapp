@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // メモのデータ構造を表す型
 type Memo = {
+	[x: string]: any;
 	id?: string; // 新規作成時にはidがないため、オプショナルとする
 	title: string;
 	description: string;

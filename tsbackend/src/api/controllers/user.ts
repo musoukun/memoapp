@@ -1,7 +1,8 @@
 import CryptoJS from "crypto-js";
 import jsonwebtoken from "jsonwebtoken";
-import { PrismaClient, User } from "@prisma/client";
+import { Prisma, PrismaClient, User } from "@prisma/client";
 import { Request, Response } from "express";
+import env from "../../../env";
 
 const prisma = new PrismaClient();
 
@@ -16,7 +17,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 	try {
 		const encryptedPassword: string = CryptoJS.AES.encrypt(
 			password,
-			process.env.PASS as string
+			env.PASS as string
 		).toString();
 		console.log(encryptedPassword);
 		const user: User = await prisma.user.create({
@@ -28,7 +29,7 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 		console.log(user);
 		const token: string = jsonwebtoken.sign(
 			{ id: user.id },
-			process.env.TOKEN as string,
+			env.TOKEN as string,
 			{
 				expiresIn: "24h",
 			}
@@ -57,7 +58,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 
 		const decryptedPassword: string = CryptoJS.AES.decrypt(
 			user.passwordDigest!,
-			process.env.PASS!
+			env.PASS!
 		).toString(CryptoJS.enc.Utf8);
 		if (decryptedPassword !== password) {
 			res.status(401).json({
@@ -66,15 +67,23 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 			return;
 		}
 
-		const token: string = jsonwebtoken.sign(
-			{ id: user.id },
-			process.env.TOKEN!,
-			{
-				expiresIn: "24h",
-			}
-		);
+		const token: string = jsonwebtoken.sign({ id: user.id }, env.TOKEN!, {
+			expiresIn: "24h",
+		});
 		res.status(201).json({ user, token });
 	} catch (err: any) {
-		res.status(500).json(err);
+		if (err instanceof Prisma.PrismaClientKnownRequestError) {
+			console.error("Prisma known error:", err.message);
+			res.status(500).json({ message: "Database error", code: err.code });
+		} else if (err instanceof Prisma.PrismaClientUnknownRequestError) {
+			console.error("Prisma unknown error:", err.message);
+			res.status(500).json({ message: "Unknown database error" });
+		} else {
+			console.error("Unexpected error:", err);
+			res.status(500).json({
+				message:
+					"envファイルまたは、envファイルを読み込んでいる箇所に誤りがあるかもしれません。",
+			});
+		}
 	}
 };

@@ -58,6 +58,7 @@ const EmojiPicker: React.FC<{
 			>
 				<Picker onEmojiSelect={selectEmoji} />
 			</Box>
+			{/* <EmojiPicker icon={""} onChange={selectEmoji as any}  /> */}
 		</Box>
 	);
 };

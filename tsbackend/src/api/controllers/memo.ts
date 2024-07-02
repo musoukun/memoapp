@@ -10,20 +10,28 @@ export const test = async (req: Request, res: Response) => {
 };
 
 export const create = async (
-	req: CustomRequest<{ position: number }>,
+	req: CustomRequest<{ title: string }>,
 	res: Response
 ) => {
 	try {
-		const memoCount = await prisma.memo.count();
+		const { title } = req.body;
+		const memoCount = await prisma.memo.count({
+			where: { userId: req.user!.id },
+		});
 		const memo = await prisma.memo.create({
 			data: {
 				userId: req.user!.id,
 				position: memoCount,
+				title: title || "無題",
+				description: "ここに自由に記入してください",
+				favorite: false,
+				favoritePosition: 0,
 			},
 		});
 		res.status(201).json(memo);
 	} catch (err) {
-		res.status(500).json(err);
+		console.error("Failed to create memo:", err);
+		res.status(500).json({ error: "Failed to create memo" });
 	}
 };
 

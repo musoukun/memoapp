@@ -1,55 +1,44 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { Box } from "@mui/material";
-import { Outlet, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 import authUtils from "../../utils/authUtil";
 import SideBar from "../common/Sidebar";
 import { userStateAtom } from "../../atoms/userAtoms";
-import Loading from "../common/Loading";
-import { useRecoilState } from "recoil";
+import { useSetRecoilState } from "recoil";
 import "../../App.css";
+import Memo from "../pages/Memo";
 
 const AppLayout = () => {
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(true);
-	const [__user, setUser] = useRecoilState(userStateAtom);
+	const setUser = useSetRecoilState(userStateAtom);
 
 	useEffect(() => {
-		//JWTを持ってるのか確認する。
 		const checkAuth = async () => {
-			// 認証チェック
 			const isUser = await authUtils.isAuthenticated();
 			if (!isUser) {
-				navigate("/login"); // 認証済みの場合はホームにリダイレクト
+				navigate("/login");
 			} else {
-				//ユーザーの保存
 				setUser(isUser);
 				setLoading(false);
 			}
 		};
 		checkAuth();
-	}, [navigate]);
+	}, [navigate, setUser]);
 
 	return loading ? (
-		<>
-			<Loading fullHeight />
-		</>
+		<div className="flex items-center justify-center h-full">
+			<div className="font-roboto text-[20px]">Loading...</div>
+		</div>
 	) : (
-		<div id="mainRoot" className="mainRoot">
-			<Box sx={{ display: "flex" }}>
+		<div id="mainRoot" className="flex h-screen">
+			<div className="w-[250px] bg-gray-800 text-white relative z-50">
 				<SideBar />
-				<Box
-					sx={{
-						flexGrow: 1,
-						p: 1,
-						width: "max-content",
-					}}
-				>
-					<Outlet />
-				</Box>
-			</Box>
+			</div>
+			<div className="flex-grow p-4 w-max relative z-40">
+				<Memo />
+			</div>
 		</div>
 	);
 };
+
 export default AppLayout;

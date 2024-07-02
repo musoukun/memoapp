@@ -1,190 +1,238 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import {
-	Box,
-	Drawer,
-	List,
-	ListItemButton,
-	Typography,
-	useTheme,
-} from "@mui/material";
-import { AddBoxOutlined, LogoutOutlined } from "@mui/icons-material";
-import { IconButton } from "@mui/material";
-import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
-import { useRecoilState, useRecoilValue } from "recoil";
+import React, { useEffect, useState, useRef } from "react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useRecoilState, useRecoilValue, useResetRecoilState } from "recoil";
 import { userStateAtom } from "../../atoms/userAtoms";
-import { Link } from "react-router-dom";
 import memoApi from "../../api/memoApi";
-import { memosStateAtom } from "../../atoms/memoAtoms";
+import {
+	favoriteMemosSelector,
+	memoStateAtom,
+	memosStateAtom,
+	sortedMemosSelector,
+} from "../../atoms/memoAtoms";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+	faPlusSquare,
+	faSignOutAlt,
+	faEllipsisH,
+	faTrash,
+} from "@fortawesome/free-solid-svg-icons";
 import { Memo } from "../../types/api";
-import { AxiosResponse } from "axios";
-import { titleStateAtom } from "../../atoms/titleAtom";
-import { iconStateAtom } from "../../atoms/iconStateAtom";
-import { favoriteStateAtom } from "../../atoms/favoliteAtom";
 
 const Sidebar = () => {
-	const theme = useTheme();
-	const [activeIndex, setActiveIndex] = useState(0); // アクティブなメモのインデックスを保持するステート
-	const navigate = useNavigate(); // ルーティング用の関数
+	const navigate = useNavigate();
+	const location = useLocation();
+	const user = useRecoilValue(userStateAtom);
+	const [memos, setMemos] = useRecoilState(memosStateAtom);
+	const sortedMemos = useRecoilValue(sortedMemosSelector);
+	const favoriteMemos = useRecoilValue(favoriteMemosSelector);
+	const [isLoggingOut, setIsLoggingOut] = useState(false);
+	const resetMemos = useResetRecoilState(memosStateAtom);
+	const resetMemo = useResetRecoilState(memoStateAtom);
+	const resetUser = useResetRecoilState(userStateAtom);
+	const [activeId, setActiveId] = useState<string | null>(null);
+	const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
+	const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
+	const menuRef = useRef<HTMLDivElement>(null);
 
-	const user = useRecoilValue(userStateAtom); // ユーザー情報の状態を取得
-	const [memos, setMemos] = useRecoilState(memosStateAtom); // メモ一覧の状態を取得
+	useEffect(() => {
+		const fetchMemos = async () => {
+			try {
+				const response = await memoApi.getAll();
+				setMemos(response.data);
+			} catch (error) {
+				console.error("Failed to fetch memos:", error);
+			}
+		};
 
-	const [title, __setTitle] = useRecoilState(titleStateAtom); // メモのタイトルの状態を取得
-	const [icon, __setIcon] = useRecoilState(iconStateAtom); // メモのアイコンの状態を取得
-	const [favorite, __setFavorite] = useRecoilState(favoriteStateAtom); // お気に入りの状態を取得
+		fetchMemos();
+	}, [setMemos]);
 
-	const { id } = useParams(); // メモのIDを取得 useParamsはURLのパラメータを取得するためのフック
-	//つまり、違うNoteに遷移したら、そのNoteのIDを取得することができる。
+	useEffect(() => {
+		const currentMemoId = location.pathname.split("/").pop();
+		setActiveId(currentMemoId || null);
+	}, [location]);
 
-	const logout = () => {
-		localStorage.removeItem("token");
-		navigate("/login");
+	useEffect(() => {
+		const handleClickOutside = (event: MouseEvent) => {
+			if (
+				menuRef.current &&
+				!menuRef.current.contains(event.target as Node)
+			) {
+				setMenuOpenId(null);
+			}
+		};
+
+		document.addEventListener("mousedown", handleClickOutside);
+		return () => {
+			document.removeEventListener("mousedown", handleClickOutside);
+		};
+	}, []);
+
+	const logout = async () => {
+		if (isLoggingOut) return;
+		setIsLoggingOut(true);
+		try {
+			localStorage.removeItem("token");
+			resetMemos();
+			resetMemo();
+			resetUser();
+			navigate("/login");
+		} catch (error) {
+			console.error("Logout failed:", error);
+		} finally {
+			setIsLoggingOut(false);
+		}
 	};
 
 	const addMemo = async () => {
 		try {
-			// メモの作成処理
-			const res = await memoApi.create();
-			console.log(res.data);
-
-			// メモ一覧に新しく作成したメモを追加
-			const newMemos = [...memos, res.data];
-			await setMemos(newMemos);
-
-			await navigate(`/memo/${res.data.id}`);
+			const newMemo: Memo = {
+				id: Date.now().toString(),
+				title: "",
+				description: "",
+				favorite: false,
+				icon: "📄",
+				position: 0,
+				favoritePosition: 0,
+				createdAt: new Date().toISOString(),
+				updatedAt: new Date().toISOString(),
+			};
+			navigate(`/memo/${newMemo.id}`);
 		} catch (err: any) {
 			alert(err.status + ": " + err.statusText);
 		}
 	};
 
-	useEffect(() => {
-		const getMemos = async () => {
-			// メモの取得処理
-			try {
-				const res: AxiosResponse<Memo[]> = await memoApi.getAll();
-				const sortedMemos = res.data.sort(
-					(a: Memo, b: Memo) => a.position - b.position
-				); // 位置順に並べ替え
-				await setMemos(sortedMemos);
-				console.log("メモ更新");
-			} catch (err: any) {
-				alert(err.status + ": " + err.statusText);
+	const deleteMemo = async (id: string) => {
+		try {
+			await memoApi.delete(id);
+			setMemos(memos.filter((memo) => memo.id !== id));
+			if (activeId === id) {
+				// 削除した前後のメモどちらかがあれば遷移
+				const index = memos.findIndex((memo) => memo.id === id);
+				const nextMemo = memos[index + 1];
+				const prevMemo = memos[index - 1];
+
+				if (nextMemo) {
+					navigate(`/memo/${nextMemo.id}`);
+				} else if (prevMemo) {
+					navigate(`/memo/${prevMemo.id}`);
+				} else {
+					navigate("/memo");
+				}
+				// ↑三項演算子を使うと以下のようになる
+				// navigate(`/memo/${nextMemo ? nextMemo.id : prevMemo ? prevMemo.id : ""}`);
+
+				// メモが1つだけの場合はトップページに遷移
+				if (memos.length === 1) {
+					navigate("/");
+				}
 			}
-		};
-		// メモの取得処理を実行
+		} catch (error) {
+			console.error("Failed to delete memo:", error);
+		} finally {
+			setMenuOpenId(null);
+		}
+	};
 
-		getMemos();
-	}, [title, icon, favorite]);
+	const renderMemoItem = (item: Memo) => {
+		const isActive = activeId === item.id;
+		const itemClasses = `flex items-center justify-between p-4 text-black dark:text-white ${
+			isActive ? "bg-gray-200 dark:bg-gray-700" : ""
+		}`;
 
-	useEffect(() => {
-		// メモのIDが変更されたときにアクティブなメモのインデックスを更新
-		const index = memos.findIndex((memo: Memo) => memo.id === id);
-		setActiveIndex(index);
-	}, [navigate, id]);
+		return (
+			<li key={item.id} className="pl-8 relative">
+				<Link to={`/memo/${item.id}`} className={itemClasses}>
+					<span>
+						{item.icon} {item.title}
+					</span>
+					<FontAwesomeIcon
+						icon={faEllipsisH}
+						className="cursor-pointer"
+						onClick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							const rect =
+								e.currentTarget.getBoundingClientRect();
+							setMenuPosition({
+								top: rect.bottom,
+								left: rect.right + 5, // 5px right offset
+							});
+							setMenuOpenId(
+								menuOpenId === item.id
+									? null
+									: (item.id as string)
+							);
+						}}
+					/>
+				</Link>
+				{menuOpenId === item.id && (
+					<div
+						ref={menuRef}
+						className="absolute bg-white dark:bg-gray-800 rounded-lg shadow-xl p-2 z-[10000]"
+						style={{
+							top: `${menuPosition.top}px`,
+							left: `${menuPosition.left}px`,
+						}}
+					>
+						<button
+							onClick={() => deleteMemo(item.id as string)}
+							className="flex items-center px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md w-full"
+						>
+							<FontAwesomeIcon icon={faTrash} className="mr-2" />
+							Delete
+						</button>
+					</div>
+				)}
+			</li>
+		);
+	};
 
 	return (
-		<>
-			<Drawer
-				container={window.document.body}
-				variant="permanent"
-				open={true}
-				sx={{
-					width: 250,
-					height: "100vh",
-					bgcolor: theme.palette.background.default, // テーマに応じて背景色を設定
-				}}
-			>
-				<List
-					sx={{
-						width: 250,
-						height: "100vh",
-						bgcolor: theme.palette.background.default, // テーマに応じて背景色を設定
-					}}
-				>
-					<ListItemButton component={Link} to="/">
-						<Box
-							sx={{
-								width: "100%",
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "space-between",
-							}}
-						>
-							<Typography variant="body2" fontWeight="700">
-								{user.username}
-							</Typography>
-							<IconButton onClick={logout}>
-								<LogoutOutlined />
-							</IconButton>
-						</Box>
-					</ListItemButton>
-					<Box sx={{ paddingTop: "10px" }}></Box>
-					<ListItemButton>
-						<Box
-							sx={{
-								width: "100%",
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "space-between",
-							}}
-						>
-							<Typography variant="body2" fontWeight="700">
+		<div className="w-[250px] h-screen bg-white dark:bg-gray-800 flex flex-col overflow-hidden  z-[9999]">
+			<div className="flex-shrink-0">
+				<div className="flex items-center justify-between p-4">
+					<span className="text-sm font-bold text-black dark:text-white">
+						{user.username}
+					</span>
+					<button
+						className="text-gray-600 dark:text-gray-400"
+						onClick={logout}
+					>
+						<FontAwesomeIcon icon={faSignOutAlt} />
+					</button>
+				</div>
+			</div>
+			<div className="flex-grow overflow-y-auto">
+				<ul>
+					<li className="mt-2">
+						<div className="flex items-center justify-between w-full p-4">
+							<span className="text-sm font-bold text-black dark:text-white">
 								お気に入り
-							</Typography>
-						</Box>
-					</ListItemButton>
-					{memos
-						.filter((item: Memo) => item.favorite)
-						.map((item: Memo, index: number) => (
-							<ListItemButton
-								sx={{ pl: "20px" }}
-								component={Link}
-								to={`/memo/${item.id}`}
-								key={item.id}
-								selected={activeIndex === index}
-							>
-								<Typography>
-									{item.icon} {item.title}
-								</Typography>
-							</ListItemButton>
-						))}
-					<Box sx={{ paddingTop: "10px" }}></Box>
-					<ListItemButton>
-						<Box
-							sx={{
-								width: "100%",
-								display: "flex",
-								alignItems: "center",
-								justifyContent: "space-between",
-							}}
-						>
-							<Typography variant="body2" fontWeight="700">
+							</span>
+						</div>
+					</li>
+					{favoriteMemos
+						.filter((item) => item.favorite)
+						.map(renderMemoItem)}
+					<li className="mt-2">
+						<div className="flex items-center justify-between w-full p-4">
+							<span className="text-sm font-bold text-black dark:text-white">
 								プライベート
-							</Typography>
-							<IconButton onClick={() => addMemo()}>
-								<AddBoxOutlined fontSize="small" />
-							</IconButton>
-						</Box>
-					</ListItemButton>
-					{memos.map((item: any, index: any) => (
-						<ListItemButton
-							sx={{ pl: "20px" }}
-							component={Link}
-							to={`/memo/${item.id}`}
-							key={item.id}
-							selected={activeIndex === index}
-							// selected={true}
-						>
-							<Typography>
-								{item.icon} {item.title}
-							</Typography>
-						</ListItemButton>
-					))}
-				</List>
-			</Drawer>
-		</>
+							</span>
+							<button
+								className="text-gray-600 dark:text-gray-400"
+								onClick={addMemo}
+							>
+								<FontAwesomeIcon icon={faPlusSquare} />
+							</button>
+						</div>
+					</li>
+					{sortedMemos.map(renderMemoItem)}
+				</ul>
+			</div>
+		</div>
 	);
 };
 

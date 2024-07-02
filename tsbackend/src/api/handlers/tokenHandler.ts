@@ -1,6 +1,7 @@
 import * as jsonwebtoken from "jsonwebtoken";
 import { Request, Response, NextFunction } from "express";
 import { PrismaClient } from "@prisma/client";
+import env from "../../../env";
 
 const prisma = new PrismaClient();
 
@@ -19,7 +20,7 @@ const tokenDecode = (
 			// ベアラと秘密鍵情報を用いてJWTの検証と読み取りを行う。
 			const tokenDecoded = jsonwebtoken.verify(
 				bearer,
-				process.env.TOKEN as string
+				env.TOKEN as string
 			);
 			return tokenDecoded;
 			// ベアラと秘密鍵が正しくない場合はfalseを返す->権限がない判定。

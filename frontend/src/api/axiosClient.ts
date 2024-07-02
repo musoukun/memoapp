@@ -2,7 +2,7 @@ import axios, { AxiosError, AxiosResponse } from "axios";
 import queryString from "query-string";
 
 const BASE_URL = import.meta.env.VITE_API_BASE_URL;
-
+console.log(BASE_URL);
 const getToken = (): string | null => localStorage.getItem("token");
 
 console.log(getToken);

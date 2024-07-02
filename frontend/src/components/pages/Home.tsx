@@ -1,51 +1,38 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
-import { LoadingButton } from "@mui/lab";
-import { Box } from "@mui/system";
-import { useState } from "react";
-import memoApi from "../../api/memoApi";
-import { useNavigate } from "react-router-dom";
+import React from "react";
+import DashboardTitle from "../dashboard/DashboardTitle";
+import RecentAccess from "../dashboard/RecentAccess";
+import WeeklyEvents from "../dashboard/WeeklyEvents";
+import MyTasks from "../dashboard/MyTasks";
 
-// import { useRecoilValue } from "recoil";
-// import { userStateAtom } from "../../atoms/userAtoms";
-
-const Home = () => {
-	const navigate = useNavigate();
-	const [loading, setLoading] = useState(false);
-	// const user = useRecoilValue(userStateAtom);
-
-	const createMemo = async () => {
-		console.log("create memo");
-		try {
-			setLoading(true);
-			// メモの作成処理
-			const res = await memoApi.create();
-			console.log(res.data);
-			navigate(`/memo/${res.data.id}`);
-		} catch (err: any) {
-			// エラー処理
-			alert(err.status + ": " + err.statusText);
-		} finally {
-			setLoading(false);
-		}
+interface MainDashboardProps {
+	title: string;
+	recentAccess: Array<{ name: string; time: string }>;
+	events: {
+		description: string;
+		linkText: string;
+		schedules: Array<{ date: string; name: string }>;
 	};
+	tasks: {
+		description: string;
+		linkText: string;
+		taskList: Array<{ name: string; date: string; type: string }>;
+	};
+}
 
+const MainDashboard: React.FC<MainDashboardProps> = ({
+	title,
+	recentAccess,
+	events,
+	tasks,
+}) => {
 	return (
-		<Box
-			sx={{
-				height: "100%",
-				display: "flex",
-				alignItems: "center",
-				justifyContent: "center",
-			}}
-		>
-			<LoadingButton
-				variant="outlined"
-				onClick={createMemo}
-				loading={loading}
-			>
-				最初のメモを作成
-			</LoadingButton>
-		</Box>
+		<div className="bg-[#1a1a1a] min-h-screen p-6">
+			<DashboardTitle title={title} />
+			<RecentAccess recentAccess={recentAccess} />
+			<WeeklyEvents events={events} />
+			<MyTasks tasks={tasks} />
+		</div>
 	);
 };
-export default Home;
+
+export default MainDashboard;
