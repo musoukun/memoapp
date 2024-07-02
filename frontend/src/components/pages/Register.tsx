@@ -5,6 +5,14 @@ import { Link, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import authApi from "../../api/authApi";
 
+type ErrorResponse = {
+	type: string;
+	value: string;
+	msg: string;
+	path: string;
+	location: string;
+};
+
 const Register = () => {
 	const navigate = useNavigate();
 
@@ -53,9 +61,10 @@ const Register = () => {
 			localStorage.setItem("token", res.data.token);
 			navigate("/");
 		} catch (err: any) {
-			const errors = err.data;
-			console.log(errors);
-			errors.forEach((e: any) => {
+			const errors: Array<ErrorResponse> = err.data.errors;
+			console.log(err.data.errors);
+
+			errors.forEach((e: ErrorResponse) => {
 				console.log(e);
 				if (e.path === "username") {
 					setUsernameErrText(e.msg);

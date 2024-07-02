@@ -1,31 +1,32 @@
 import CryptoJS from "crypto-js";
 import jsonwebtoken from "jsonwebtoken";
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient, User } from "@prisma/client";
+import { Request, Response } from "express";
 
 const prisma = new PrismaClient();
 
-export const test = async (req, res) => {
+export const test = async (req: Request, res: Response): Promise<void> => {
 	res.send("authAPI test");
 };
 
-export const register = async (req, res) => {
-	const password = req.body.password;
+export const register = async (req: Request, res: Response): Promise<void> => {
+	const password: string = req.body.password;
 	console.log(password);
 
 	try {
-		const encryptedPassword = CryptoJS.AES.encrypt(
+		const encryptedPassword: string = CryptoJS.AES.encrypt(
 			password,
 			process.env.PASS as string
 		).toString();
 		console.log(encryptedPassword);
-		const user = await prisma.user.create({
+		const user: User = await prisma.user.create({
 			data: {
 				username: req.body.username,
 				passwordDigest: encryptedPassword,
 			},
 		});
 		console.log(user);
-		const token = jsonwebtoken.sign(
+		const token: string = jsonwebtoken.sign(
 			{ id: user.id },
 			process.env.TOKEN as string,
 			{
@@ -33,18 +34,18 @@ export const register = async (req, res) => {
 			}
 		);
 		res.status(200).json({ user, token });
-	} catch (err) {
+	} catch (err: any) {
 		res.status(500).json(err);
 		console.log(err);
 	}
 };
 
-export const login = async (req, res) => {
+export const login = async (req: Request, res: Response): Promise<void> => {
 	const username: string = req.body.username;
 	const password: string = req.body.password;
 
 	try {
-		const user = await prisma.user.findUnique({
+		const user: User | null = await prisma.user.findUnique({
 			where: { username: username },
 		});
 		if (!user) {
@@ -54,7 +55,7 @@ export const login = async (req, res) => {
 			return;
 		}
 
-		const decryptedPassword = CryptoJS.AES.decrypt(
+		const decryptedPassword: string = CryptoJS.AES.decrypt(
 			user.passwordDigest!,
 			process.env.PASS!
 		).toString(CryptoJS.enc.Utf8);
@@ -65,11 +66,15 @@ export const login = async (req, res) => {
 			return;
 		}
 
-		const token = jsonwebtoken.sign({ id: user.id }, process.env.TOKEN!, {
-			expiresIn: "24h",
-		});
+		const token: string = jsonwebtoken.sign(
+			{ id: user.id },
+			process.env.TOKEN!,
+			{
+				expiresIn: "24h",
+			}
+		);
 		res.status(201).json({ user, token });
-	} catch (err) {
+	} catch (err: any) {
 		res.status(500).json(err);
 	}
 };

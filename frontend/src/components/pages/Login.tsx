@@ -49,14 +49,14 @@ const Login = () => {
 		} catch (err: any) {
 			// バックエンドから返されたエラーメッセージの処理
 			setLoading(false);
-			const errors = err.data;
+			const errors = await Promise.resolve(err.data);
 			console.log(errors);
 			errors.forEach((e: any) => {
 				if (e.errors) {
-					if (e.username) {
+					if (e.path === "username") {
 						setUsernameErrText(e.msg); // ユーザー名エラー
 					}
-					if (e.password) {
+					if (e.path === "password") {
 						setPasswordErrText(e.msg); // パスワードエラー
 					}
 					// 確認パスワードのエラーはバックエンドでチェックしないのでフロントエンドのロジックに依存

@@ -6,6 +6,10 @@ type Memo = {
 	description: string;
 	icon: string;
 	favorite: boolean;
+	position: number;
+	favoritePosition: number;
+	createdAt: string;
+	updatedAt: string;
 };
 
 // メモ取得APIのレスポンスの型

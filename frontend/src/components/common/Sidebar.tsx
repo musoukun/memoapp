@@ -64,14 +64,16 @@ const Sidebar = () => {
 			// メモの取得処理
 			try {
 				const res: AxiosResponse<Memo[]> = await memoApi.getAll();
-				await setMemos(res.data);
+				const sortedMemos = res.data.sort(
+					(a: Memo, b: Memo) => a.position - b.position
+				); // 位置順に並べ替え
+				await setMemos(sortedMemos);
 				console.log("メモ更新");
 			} catch (err: any) {
 				alert(err.status + ": " + err.statusText);
 			}
 		};
 		// メモの取得処理を実行
-		// 終了を待つためにasync/awaitを使用
 
 		getMemos();
 	}, [title, icon, favorite]);

@@ -31,7 +31,7 @@ export const getAll = async (req: CustomRequest<{}>, res: Response) => {
 	try {
 		const memos = await prisma.memo.findMany({
 			where: { userId: req.user!.id },
-			orderBy: { position: "desc" },
+			orderBy: { position: "asc" },
 		});
 		res.status(200).json(memos);
 	} catch (err) {
