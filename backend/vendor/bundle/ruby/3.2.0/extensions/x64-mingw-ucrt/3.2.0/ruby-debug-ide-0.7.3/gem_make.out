@@ -1,8 +1,0 @@
-current directory: D:/develop/markdown/backend/vendor/bundle/ruby/3.2.0/gems/ruby-debug-ide-0.7.3/ext
-C:/Ruby32-x64/bin/ruby.exe mkrf_conf.rb
-Installing base gem
-Building native extensions. This could take a while...
-Building native extensions. This could take a while...
-
-current directory: D:/develop/markdown/backend/vendor/bundle/ruby/3.2.0/gems/ruby-debug-ide-0.7.3/ext
-C:/Ruby32-x64/bin/ruby.exe -rrubygems D:/develop/markdown/backend/vendor/bundle/ruby/3.2.0/gems/rake-13.1.0/exe/rake RUBYARCHDIR\=D:/develop/markdown/backend/vendor/bundle/ruby/3.2.0/extensions/x64-mingw-ucrt/3.2.0/ruby-debug-ide-0.7.3 RUBYLIBDIR\=D:/develop/markdown/backend/vendor/bundle/ruby/3.2.0/extensions/x64-mingw-ucrt/3.2.0/ruby-debug-ide-0.7.3
