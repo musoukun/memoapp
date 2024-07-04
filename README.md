@@ -2,6 +2,8 @@
 - Typescript + railsでの学習のOutputのためのアプリ（ポートフォリオのつもり）開発。
 - だったが、いまはALL Typescriptで開発している。
   - 理由はVercelにデプロイできるようにするため。
+- ![beta](https://github.com/musoukun/memoapp/assets/35359979/3976018d-fd0f-442b-9bd4-2a093790691e)
+
 
 # 技術スタック
 ## プログラミング言語（フロントエンド＋バックエンド共通）
