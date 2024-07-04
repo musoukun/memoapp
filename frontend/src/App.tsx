@@ -76,6 +76,7 @@ function App() {
 						<Route path="/register" element={<Register />} />
 					</Route>
 					<Route path="/" element={<AppLayout />}>
+						<Route path="memo/:id" element={<Memo />} />
 						<Route
 							path="memo"
 							element={
@@ -88,7 +89,6 @@ function App() {
 							}
 						/>
 						{/* <Route path="memo" element={<Home />} /> */}
-						<Route path="memo/:id" element={<Memo />} />
 					</Route>
 				</Routes>
 			</BrowserRouter>

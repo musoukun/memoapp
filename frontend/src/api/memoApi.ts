@@ -1,7 +1,7 @@
 import axiosClient from "./axiosClient";
 
 const memoApi = {
-	create: (title: string) => axiosClient.post("memo", title),
+	create: () => axiosClient.post("memo"),
 	getAll: () => axiosClient.get("memo"),
 	updatePosition: (params: any) => axiosClient.put("memo", params),
 	show: (id: string) => axiosClient.get(`memo/${id}`),
