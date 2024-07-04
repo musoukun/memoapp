@@ -3,7 +3,7 @@
 - だったが、いまはALL Typescriptで開発している。
   - 理由はVercelにデプロイできるようにするため。
 
-# 操作イメージ（2024/06時点のモノ）
+## 操作イメージ（2024/06時点のモノ）
 ![beta](https://github.com/musoukun/memoapp/assets/35359979/3976018d-fd0f-442b-9bd4-2a093790691e)
 
 
@@ -24,7 +24,7 @@
   - フレームワーク: Express
   - ORM: Prisma
   - データベース:PostgreSQL (Prisma ORMによる管理)
-# デプロイ
+## デプロイ
  - Vercel
  - Spabase
 
