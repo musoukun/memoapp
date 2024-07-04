@@ -190,6 +190,8 @@ const Memo: React.FC = () => {
 			try {
 				// APIを呼び出してメモを削除
 				await memoApi.delete(id);
+				// サイドバーの情報も更新
+				updateSidebarInfo(id, { delete: true });
 				// メモ一覧ページにナビゲート
 				navigate("/memo");
 			} catch (error) {

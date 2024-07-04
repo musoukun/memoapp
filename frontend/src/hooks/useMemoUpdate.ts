@@ -20,7 +20,7 @@ export const useMemoUpdate = () => {
 
 	const updateSidebarInfo = (
 		id: string,
-		updates: Partial<Pick<Memo, "title" | "favorite" | "icon">>
+		updates: Partial<Pick<Memo, "title" | "favorite" | "icon" | "delete">>
 	) => {
 		setMemos((prevMemos) =>
 			prevMemos.map((memo) =>
