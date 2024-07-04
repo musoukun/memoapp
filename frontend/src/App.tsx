@@ -1,4 +1,3 @@
-// import { useState } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AuthLayout from "./components/layout/AuthLayout";
 import Login from "./components/pages/Login";
@@ -10,7 +9,6 @@ import { useEffect } from "react";
 
 function App() {
 	useEffect(() => {
-		// システムの設定に基づいて dark モードを適用
 		if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
 			document.documentElement.classList.add("dark");
 		} else {
@@ -20,15 +18,13 @@ function App() {
 
 	const recentAccess = [
 		{ name: "無題", time: "9分前" },
-		{ name: "データ取込（案）", time: "2022年5月26日" },
+		{ name: "データ取込", time: "2022年5月26日" },
 		{ name: "テスト", time: "2022年4月21日" },
-		{ name: "開発・ツール関連", time: "2023年9月5日" },
-		{ name: "無題", time: "3週間前" },
-		{ name: "FC事業部", time: "2022年10月7日" },
-		{ name: "データ取込（看板）", time: "16分前" },
-		{ name: "無題", time: "3週間前" },
-		{ name: "データ取込（案）", time: "2022年5月26日" },
-		{ name: "テスト", time: "2022年4月21日" },
+		{ name: "開発・ツール関連打ち合わせ1", time: "2023年9月5日" },
+		{ name: "テストタイトル2", time: "3週間前" },
+		{ name: "IT事業部", time: "2022年10月7日" },
+		{ name: "テストタイトル3", time: "2022年4月21日" },
+		{ name: "開発・ツール関連打ち合わせ2", time: "2022年4月21日" },
 	];
 
 	const events = {
@@ -44,10 +40,10 @@ function App() {
 
 	const tasks = {
 		description:
-			"はたいや未内であなたに割り当てられたすべてのタスクを一か所で表示します。",
+			"あなたに割り当てられたすべてのタスクを一か所で表示します。",
 		linkText: "タスクが表示されませんか？",
 		taskList: [
-			{ name: "ゴトウさん状況確認", date: "2024年7月3日", type: "仕事" },
+			{ name: "状況確認", date: "2024年7月3日", type: "仕事" },
 			{
 				name: "デザインドキュメントをレビュー",
 				date: "2024年7月4日",
@@ -72,10 +68,21 @@ function App() {
 			<BrowserRouter>
 				<Routes>
 					<Route path="/" element={<AuthLayout />}>
-						<Route path="/login" element={<Login />} />
-						<Route path="/register" element={<Register />} />
+						<Route path="login" element={<Login />} />
+						<Route path="register" element={<Register />} />
 					</Route>
 					<Route path="/" element={<AppLayout />}>
+						<Route
+							index
+							element={
+								<Home
+									title={"ホーム"}
+									recentAccess={recentAccess}
+									events={events}
+									tasks={tasks}
+								/>
+							}
+						/>
 						<Route path="memo/:id" element={<Memo />} />
 						<Route
 							path="memo"
@@ -88,7 +95,6 @@ function App() {
 								/>
 							}
 						/>
-						{/* <Route path="memo" element={<Home />} /> */}
 					</Route>
 				</Routes>
 			</BrowserRouter>

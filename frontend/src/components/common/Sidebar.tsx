@@ -1,7 +1,5 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 import { useEffect, useState } from "react";
-import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue, useResetRecoilState } from "recoil";
 import { userStateAtom } from "../../atoms/userAtoms";
 import memoApi from "../../api/memoApi";
@@ -12,24 +10,29 @@ import {
 	sortedMemosSelector,
 } from "../../atoms/memoAtoms";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faPlusSquare, faSignOutAlt } from "@fortawesome/free-solid-svg-icons";
+import {
+	faPlusSquare,
+	faSignOutAlt,
+	faEllipsisH,
+} from "@fortawesome/free-solid-svg-icons";
+import DropdownMenu from "./DropdownMenu";
 
 const Sidebar = () => {
-	const [activeIndex] = useState(0); // アクティブなメモのインデックスを保持するステート
-	const navigate = useNavigate(); // ルーティング用の関数
-
-	const user = useRecoilValue(userStateAtom); // ユーザー情報の状態を取得
-	const [memos, setMemos] = useRecoilState(memosStateAtom); // メモ一覧の状態を取得
-
+	// const [activeIndex] = useState(0);
+	const navigate = useNavigate();
+	const user = useRecoilValue(userStateAtom);
+	const [memos, setMemos] = useRecoilState(memosStateAtom);
 	const sortedMemos = useRecoilValue(sortedMemosSelector);
 	const favoriteMemos = useRecoilValue(favoriteMemosSelector);
-
-	// ログアウト処理関連のステートと関数
 	const [isLoggingOut, setIsLoggingOut] = useState(false);
 	const resetMemos = useResetRecoilState(memosStateAtom);
 	const resetMemo = useResetRecoilState(memoStateAtom);
 	const resetUser = useResetRecoilState(userStateAtom);
-	const location = useLocation();
+	// const location = useLocation();
+
+	const [hoveredMemo, setHoveredMemo] = useState<string | null>(null);
+	const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+	const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
 
 	useEffect(() => {
 		const fetchMemos = async () => {
@@ -42,22 +45,16 @@ const Sidebar = () => {
 		};
 
 		fetchMemos();
-	}, []);
+	}, [setMemos]);
 
 	const logout = async () => {
-		if (isLoggingOut) return; // 既にログアウト処理中なら何もしない
-
+		if (isLoggingOut) return;
 		setIsLoggingOut(true);
 		try {
-			// ログアウト処理
-			// ローカルストレージからトークンを削除
 			localStorage.removeItem("token");
-
-			// ログアウト時に各種状態をリセット
 			resetMemos();
 			resetMemo();
 			resetUser();
-
 			navigate("/login");
 		} catch (error) {
 			console.error("Logout failed:", error);
@@ -66,19 +63,17 @@ const Sidebar = () => {
 		}
 	};
 
-	// ログインしていない場合はログインページにリダイレクト
-	useEffect(() => {
-		const token = localStorage.getItem("token");
-		if (!token && location.pathname !== "/login") {
-			navigate("/login");
+	const home = async () => {
+		try {
+			navigate(`/`);
+		} catch (err: any) {
+			alert(err.status + ": " + err.statusText);
 		}
-	}, [location, navigate]);
+	};
 
 	const addMemo = async () => {
 		try {
-			// メモの作成処理
 			const res = await memoApi.create();
-			// メモ一覧に新しく作成したメモを追加
 			const newMemos = [...memos, res.data];
 			setMemos(newMemos);
 			navigate(`/memo/${res.data.id}`);
@@ -87,72 +82,118 @@ const Sidebar = () => {
 		}
 	};
 
-	return (
-		<div className="w-[250px] h-screen bg-white dark:bg-gray-800 flex flex-col overflow-hidden">
-			<div className="flex-shrink-0">
-				<div className="flex items-center justify-between p-4">
-					<span className="text-sm font-bold text-black dark:text-white">
-						{user.username}
-					</span>
+	const handleDeleteMemo = async (id: string) => {
+		try {
+			await memoApi.delete(id);
+			const updatedMemos = memos.filter((memo) => memo.id !== id);
+			setMemos(updatedMemos);
+			setOpenDropdown(null);
+			navigate("/memo");
+		} catch (error) {
+			console.error("Failed to delete memo:", error);
+		}
+	};
+
+	const renderMemoItem = (item: any, isFavorite: boolean = false) => (
+		<li key={item.id} className={isFavorite ? "pl-8" : "pl-8"}>
+			<div
+				className="flex items-center justify-between p-4 text-black dark:text-white relative"
+				onMouseEnter={() => setHoveredMemo(item.id)}
+				onMouseLeave={() => setHoveredMemo(null)}
+			>
+				<Link to={`/memo/${item.id}`} className="flex-grow">
+					{item.icon} {item.title}
+				</Link>
+				{hoveredMemo === item.id && (
 					<button
-						className="text-gray-600 dark:text-gray-400"
-						onClick={logout}
+						onClick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							const rect =
+								e.currentTarget.getBoundingClientRect();
+							setDropdownPosition({
+								x: rect.right,
+								y: rect.bottom,
+							});
+							setOpenDropdown(
+								openDropdown === item.id ? null : item.id
+							);
+						}}
+						className="text-gray-600 dark:text-gray-400 ml-2"
 					>
-						<FontAwesomeIcon icon={faSignOutAlt} />
+						<FontAwesomeIcon icon={faEllipsisH} />
 					</button>
+				)}
+			</div>
+		</li>
+	);
+
+	return (
+		<>
+			<div className="w-[320px] h-screen bg-white dark:bg-gray-800 flex flex-col overflow-hidden">
+				<div className="flex-shrink-0">
+					<div className="flex items-center justify-between p-4">
+						<span className="text-sm font-bold text-black dark:text-white">
+							{user.username}
+						</span>
+						<button
+							className="text-gray-600 dark:text-gray-400"
+							onClick={logout}
+						>
+							<FontAwesomeIcon icon={faSignOutAlt} />
+						</button>
+					</div>
+				</div>
+				<div className="flex-grow overflow-y-auto">
+					<ul>
+						<li className="mt-2">
+							<div className="flex items-center justify-between w-full p-4">
+								<button
+									className="text-gray-600 dark:text-gray-400"
+									onClick={home}
+								>
+									<span className="text-sm font-bold text-black dark:text-white ml-1">
+										🏠ホーム
+									</span>
+								</button>
+							</div>
+						</li>
+						<li className="mt-2">
+							<div className="flex items-center justify-between w-full p-4">
+								<span className="text-sm font-bold text-black dark:text-white ml-1">
+									🌟お気に入り
+								</span>
+							</div>
+						</li>
+						{favoriteMemos
+							.filter((item) => item.favorite)
+							.map((item) => renderMemoItem(item, true))}
+						<li className="mt-2">
+							<div className="flex items-center justify-between w-full p-4">
+								<span className="text-sm font-bold text-black dark:text-white ml-1">
+									プライベート
+								</span>
+								<button
+									className="text-gray-600 dark:text-gray-400"
+									onClick={addMemo}
+								>
+									<FontAwesomeIcon icon={faPlusSquare} />
+								</button>
+							</div>
+						</li>
+						{sortedMemos.map((item) => renderMemoItem(item))}
+					</ul>
 				</div>
 			</div>
-			<div className="flex-grow overflow-y-auto">
-				<ul>
-					<li className="mt-2">
-						<div className="flex items-center justify-between w-full p-4">
-							<span className="text-sm font-bold text-black dark:text-white">
-								お気に入り
-							</span>
-						</div>
-					</li>
-					{favoriteMemos
-						.filter((item) => item.favorite)
-						.map((item, index) => {
-							const isSelected = activeIndex === index; // Replace with logic to determine selected index
-							const itemClasses = `flex items-center p-4 text-black dark:text-white ${isSelected ? "bg-gray-200 dark:bg-gray-700" : ""}`;
-							return (
-								<li key={item.id} className="pl-8">
-									<Link
-										to={`/memo/${item.id}`}
-										className={itemClasses}
-									>
-										{item.icon} {item.title}
-									</Link>
-								</li>
-							);
-						})}
-					<li className="mt-2">
-						<div className="flex items-center justify-between w-full p-4">
-							<span className="text-sm font-bold text-black dark:text-white">
-								プライベート
-							</span>
-							<button
-								className="text-gray-600 dark:text-gray-400"
-								onClick={addMemo}
-							>
-								<FontAwesomeIcon icon={faPlusSquare} />
-							</button>
-						</div>
-					</li>
-					{sortedMemos.map((item) => (
-						<li key={item.id} className="pl-8">
-							<Link
-								to={`/memo/${item.id}`}
-								className="flex items-center p-4 text-black dark:text-white"
-							>
-								{item.icon} {item.title}
-							</Link>
-						</li>
-					))}
-				</ul>
-			</div>
-		</div>
+			{openDropdown && (
+				<DropdownMenu
+					memoId={openDropdown}
+					position={dropdownPosition}
+					onClose={() => setOpenDropdown(null)}
+					onDelete={handleDeleteMemo}
+				/>
+			)}
+		</>
 	);
 };
 

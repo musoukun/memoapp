@@ -5,7 +5,7 @@ import SideBar from "../common/Sidebar";
 import { userStateAtom } from "../../atoms/userAtoms";
 import { useSetRecoilState } from "recoil";
 import "../../App.css";
-import Memo from "../pages/Memo";
+import { Outlet } from "react-router-dom";
 
 const AppLayout = () => {
 	const navigate = useNavigate();
@@ -31,11 +31,11 @@ const AppLayout = () => {
 		</div>
 	) : (
 		<div id="mainRoot" className="flex h-screen">
-			<div className="w-[250px] bg-gray-800 text-white relative z-50">
+			<div className="w-[320px] bg-gray-800 text-white relative z-1005">
 				<SideBar />
 			</div>
-			<div className="flex-grow p-4 w-max relative z-40">
-				<Memo />
+			<div className="flex-grow p-4 overflow-auto relative ">
+				<Outlet />
 			</div>
 		</div>
 	);

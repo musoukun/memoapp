@@ -69,7 +69,7 @@ const Memo: React.FC = () => {
 
 	const handleContentChange = () => {
 		if (editor) {
-			const newDescription = JSON.stringify(editor.topLevelBlocks);
+			const newDescription = JSON.stringify(editor.document);
 			if (memo) {
 				setMemo({ ...memo, description: newDescription });
 				debouncedUpdateContent(newDescription);
@@ -160,8 +160,8 @@ const Memo: React.FC = () => {
 	};
 
 	return (
-		<div className="relative bg-white dark:bg-gray-800 text-black dark:text-white min-h-screen ml-12">
-			<div className="absolute top-0 right-0 p-1 z-10"></div>
+		<div className="relative bg-white dark:bg-gray-800 text-black dark:text-white min-h-screen">
+			<div className="absolute top-0 right-0 p-1 "></div>
 			<div className="flex items-center w-full ml-12 pt-4">
 				<button
 					onClick={handleFavoriteToggle}

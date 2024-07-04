@@ -26,7 +26,7 @@ const MainDashboard: React.FC<MainDashboardProps> = ({
 	tasks,
 }) => {
 	return (
-		<div className="bg-[#1a1a1a] min-h-screen p-6">
+		<div className="dark:bg-gray-800 min-h-screen p-6">
 			<DashboardTitle title={title} />
 			<RecentAccess recentAccess={recentAccess} />
 			<WeeklyEvents events={events} />
