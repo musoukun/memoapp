@@ -74,11 +74,10 @@ export const getOne = async (req: CustomRequest<{}>, res: Response) => {
 
 export const update = async (req: CustomRequest<Memo>, res: Response) => {
 	const memoId = req.params.memoId!;
-	let { title, description, favorite } = req.body as Memo;
+	let { title, description, favorite, icon } = req.body as Memo;
 
-	title = title === "" ? "無題" : title;
-	description =
-		description === "" ? "ここに自由に記入してください" : description;
+	title = title === "" ? "" : title;
+	description = description === "" ? "" : description;
 
 	try {
 		// 現在のメモを取得
@@ -96,6 +95,7 @@ export const update = async (req: CustomRequest<Memo>, res: Response) => {
 			data: {
 				title,
 				description,
+				icon,
 				favorite,
 				favoritePosition: favorite ? req.body.favoritePosition : 0,
 			},

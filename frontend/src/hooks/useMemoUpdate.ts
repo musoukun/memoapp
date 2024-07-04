@@ -10,6 +10,7 @@ export const useMemoUpdate = () => {
 	const updateMemo = async (id: string, updates: Partial<Memo>) => {
 		try {
 			const updatedMemo = await memoApi.update(id, updates);
+			// console.log("Updated memo data:", updatedMemo);
 			return updatedMemo;
 		} catch (error) {
 			console.error("Failed to update memo:", error);
