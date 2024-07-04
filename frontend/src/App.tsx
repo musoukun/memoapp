@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
 import AuthLayout from "./components/layout/AuthLayout";
 import Login from "./components/pages/Login";
 import Register from "./components/pages/Register";
@@ -83,7 +83,10 @@ function App() {
 								/>
 							}
 						/>
-						<Route path="memo/:id" element={<Memo />} />
+						<Route
+							path="memo/:id"
+							element={<Memo {...useParams()} />}
+						/>
 						<Route
 							path="memo"
 							element={
