@@ -97,7 +97,7 @@ const Sidebar = () => {
 	const renderMemoItem = (item: any, isFavorite: boolean = false) => (
 		<li key={item.id} className={isFavorite ? "pl-8" : "pl-8"}>
 			<div
-				className="flex items-center justify-between p-4 text-black dark:text-white relative"
+				className="flex items-center justify-between my-2 text-black dark:text-white relative"
 				onMouseEnter={() => setHoveredMemo(item.id)}
 				onMouseLeave={() => setHoveredMemo(null)}
 			>
@@ -171,7 +171,7 @@ const Sidebar = () => {
 						<li className="mt-2">
 							<div className="flex items-center justify-between w-full p-4">
 								<span className="text-sm font-bold text-black dark:text-white ml-1">
-									プライベート
+									👤プライベート
 								</span>
 								<button
 									className="text-gray-600 dark:text-gray-400"

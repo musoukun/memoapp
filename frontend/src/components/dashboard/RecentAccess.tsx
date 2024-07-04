@@ -115,7 +115,7 @@ const RecentAccess: React.FC = () => {
 						{recentAccess.map((item) => (
 							<div
 								key={item.id}
-								className="bg-[#3d3b3b] p-4 rounded-md min-w-[200px] flex-shrink-0"
+								className="bg-[#161b22] p-4 rounded-md min-w-[200px] flex-shrink-0"
 							>
 								<Link
 									to={`/memo/${item.id}`}

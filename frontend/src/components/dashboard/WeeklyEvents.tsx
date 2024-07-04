@@ -32,7 +32,7 @@ const WeeklyEvents: React.FC<EventsProps> = ({ events }) => {
 						onClick={toggleSection}
 					></i>
 					{hiddenSection && (
-						<div className="absolute top-full right-0 mt-2 w-[150px] bg-[#3d3b3b] p-2 rounded-md shadow-lg">
+						<div className="absolute top-full right-0 mt-2 w-[150px] dark:bg-[#161b22] p-2 rounded-md shadow-lg">
 							<p className="cursor-pointer text-white">
 								ホームで非表示
 							</p>
@@ -41,7 +41,7 @@ const WeeklyEvents: React.FC<EventsProps> = ({ events }) => {
 				</div>
 			</div>
 			{!hiddenSection && (
-				<div className="bg-[#3d3b3b] p-4 rounded-md flex">
+				<div className="dark:bg-[#161b22] p-4 rounded-md flex">
 					<i className="fas fa-calendar-alt text-2xl text-white"></i>
 					<div className="ml-4">
 						<p className="text-white">{events.description}</p>

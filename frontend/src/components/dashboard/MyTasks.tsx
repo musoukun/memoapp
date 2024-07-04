@@ -42,7 +42,7 @@ const MyTasks: React.FC<TasksProps> = ({ tasks }) => {
 				</div>
 			</div>
 			{!hiddenSection && (
-				<div className="bg-[#2a2a2a] p-4 rounded-md">
+				<div className="bg-[#161b22] p-4 rounded-md">
 					<div className="flex items-center space-x-2 mb-4">
 						<i className="fas fa-tasks text-2xl text-white"></i>
 						<p className="text-white">{tasks.description}</p>
