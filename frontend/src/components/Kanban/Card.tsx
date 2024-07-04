@@ -1,5 +1,4 @@
 // Card.tsx
-import React from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { Card as CardType } from "../../types/kanban";
 

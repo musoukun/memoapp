@@ -1,5 +1,4 @@
 // Column.tsx
-import React from "react";
 import { useDroppable } from "@dnd-kit/core";
 
 import { Card as CardType, Column as ColumnType } from "../../types/kanban";

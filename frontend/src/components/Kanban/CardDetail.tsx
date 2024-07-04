@@ -1,5 +1,4 @@
 // CardDetails.tsx
-import React from "react";
 import { Card } from "../../types/kanban";
 
 interface CardDetailsProps {

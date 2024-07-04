@@ -7,13 +7,6 @@ import { KanbanBoard } from "../Kanban/KanbanBoard";
 import { Column } from "../../types/kanban";
 
 interface HomeProps {
-	kanbanData: {
-		columns: Array<{
-			id: string;
-			title: string;
-			cards: Array<{ id: string; title: string }>;
-		}>;
-	};
 	title: string;
 	recentAccess: Array<{ name: string; time: string }>;
 	events: {
