@@ -97,6 +97,8 @@ export const update = async (req: CustomRequest<Memo>, res: Response) => {
 				description,
 				icon,
 				favorite,
+				lastAccessedAt: new Date(),
+				accessCount: { increment: 1 },
 				favoritePosition: favorite ? req.body.favoritePosition : 0,
 			},
 		});
@@ -128,5 +130,28 @@ export const deleteMemo = async (req: CustomRequest<{}>, res: Response) => {
 		res.status(200).json("メモを削除しました");
 	} catch (err) {
 		res.status(500).json(err);
+	}
+};
+
+// メモの最近のアクセス履歴を取得
+export const getRecentMemos = async (req: CustomRequest<{}>, res: Response) => {
+	const userId = req.user.id!;
+
+	try {
+		const recentMemos = await prisma.memo.findMany({
+			where: { userId: userId },
+			orderBy: { lastAccessedAt: "desc" },
+			take: 10, // Limit to 10 most recent memos
+			select: {
+				id: true,
+				title: true,
+				icon: true,
+				lastAccessedAt: true,
+			},
+		});
+
+		res.json(recentMemos);
+	} catch (error) {
+		res.status(500).json({ error: "Failed to fetch recent memos" });
 	}
 };

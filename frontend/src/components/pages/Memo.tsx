@@ -6,11 +6,7 @@ import React, {
 	useRef,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import {
-	BlockNoteView,
-	darkDefaultTheme,
-	lightDefaultTheme,
-} from "@blocknote/react";
+import { BlockNoteView } from "@blocknote/react";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/react/style.css";
 import "@mantine/core/styles.css";
@@ -20,6 +16,7 @@ import EmojiPicker from "../common/EmojiPicker";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 import { BlockNoteEditor, PartialBlock } from "@blocknote/core";
+import { customTheme } from "../blocknoteComponent/BlocknoteTheme";
 
 const Memo: React.FC = () => {
 	// ナビゲーション関連のフック
@@ -36,16 +33,19 @@ const Memo: React.FC = () => {
 		favorite: boolean;
 	} | null>(null);
 
-	// 初期コンテンツの状態。"loading"、undefined、またはPartialBlock[]のいずれか
+	// 初期コンテンツの状態。
 	const [initialContent, setInitialContent] = useState<
-		PartialBlock[] | undefined | "loading"
-	>("loading");
+		PartialBlock[] | undefined
+	>(undefined);
+
+	const searchParams = new URLSearchParams(location.search);
 
 	// 参照を使用した状態管理
 	const savingRef = useRef(false); // 保存中かどうかを追跡
 	const memoRef = useRef(memo); // 最新のmemo状態を追跡
 	const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null); // デバウンス用のタイマーを追跡
 	const editorRef = useRef<HTMLDivElement>(null); // エディタのDOM要素への参照
+	const titleRef = useRef<HTMLInputElement>(null); // タイトル入力フィールドへの参照
 
 	// memoの更新時にrefを更新
 	useEffect(() => {
@@ -64,37 +64,65 @@ const Memo: React.FC = () => {
 				setMemo(fetchedMemo.data);
 				// メモの説明がある場合はJSONをパースして返す、なければundefined
 				console.log("Fetched memo:", fetchedMemo.data.description);
-				return fetchedMemo.data.description
-					? (JSON.parse(
-							fetchedMemo.data.description
-						) as PartialBlock[])
-					: undefined;
+
+				return JSON.parse(
+					fetchedMemo.data.description
+				) as PartialBlock[];
 			} catch (err) {
 				console.error("Failed to fetch memo:", err);
-				return undefined;
 			}
 		};
 
-		// APIからデータを取得し、initialContentを設定
-		// thenとは、Promiseが成功した場合に呼び出される関数
-		// contentは、loadFromAPI()の返り値
-		loadFromAPI().then((content) => {
-			console.log("Initial content loaded:", content);
-			setInitialContent(content);
-		});
+		const emptyBlock: PartialBlock[] = [
+			{
+				type: "paragraph",
+				content: "",
+			},
+		];
+
+		// 新規メモの場合は初期コンテンツを空のブロックに設定
+		if (searchParams.get("new") === "true") {
+			setInitialContent(emptyBlock);
+			// Titleを空に設定
+			setMemo({
+				title: "",
+				description: JSON.stringify(emptyBlock),
+				icon: "📝",
+				favorite: false,
+			});
+			// titleにマウスカーソルを移動
+			titleRef.current?.focus();
+		} else {
+			// APIからデータを取得し、initialContentを設定
+			// thenとは、Promiseが成功した場合に呼び出される関数
+			// contentは、loadFromAPI()の返り値
+			loadFromAPI().then((content) => {
+				console.log("Initial content loaded:", content);
+				setInitialContent(content);
+			});
+		}
 	}, [id]);
 
 	// BlockNoteエディタの初期化
+	// initialContentが空またはundefinedの場合はeditorインスタンスを生成する
 	const editor = useMemo(() => {
-		// 初期コンテンツが"loading"の場合はnullを返す
-		if (initialContent === "loading") {
+		if (!initialContent === undefined) {
+			// メモの作成に失敗していることをエラー通知
+			console.error(
+				"Failed to create editor: initial content is loading"
+			);
+			// 初期コンテンツがない場合はnullを返す
 			return null;
 		}
+
 		return BlockNoteEditor.create({ initialContent }) as BlockNoteEditor;
 	}, [initialContent]);
 
 	// 更新処理をデバウンスする関数
-	const debouncedUpdate = (updateFn: () => Promise<void>) => {
+	const debouncedUpdate = (
+		debouncedTime: number,
+		updateFn: () => Promise<void>
+	) => {
 		// 既存のタイマーがあればクリア
 		if (updateTimeoutRef.current) {
 			clearTimeout(updateTimeoutRef.current);
@@ -110,7 +138,7 @@ const Memo: React.FC = () => {
 			} finally {
 				savingRef.current = false; // 保存中フラグをリセット
 			}
-		}, 1300); // 1.3秒のデバウンス
+		}, debouncedTime); // 1.3秒のデバウンス
 	};
 
 	// エディタの内容が変更されたときのハンドラ
@@ -121,7 +149,7 @@ const Memo: React.FC = () => {
 			// ローカル状態を更新
 			setMemo((prev) => ({ ...prev!, description: newDescription }));
 			// デバウンスされた更新を実行
-			debouncedUpdate(async () => {
+			debouncedUpdate(1300, async () => {
 				if (id && memoRef.current) {
 					// APIを呼び出してメモを更新
 					await updateMemo(id, { description: newDescription });
@@ -136,7 +164,7 @@ const Memo: React.FC = () => {
 			// ローカル状態を更新
 			setMemo((prev) => ({ ...prev!, title: newTitle }));
 			// デバウンスされた更新を実行
-			debouncedUpdate(async () => {
+			debouncedUpdate(300, async () => {
 				if (id && memoRef.current) {
 					// APIを呼び出してメモを更新
 					await updateMemo(id, { title: newTitle });
@@ -200,42 +228,9 @@ const Memo: React.FC = () => {
 		}
 	};
 
-	// エディタのカスタムテーマ設定
-	const customTheme = useMemo(
-		() => ({
-			light: {
-				...lightDefaultTheme,
-				colors: {
-					...lightDefaultTheme.colors,
-					editor: {
-						text: "#000000",
-						background: "#ffffff",
-					},
-				},
-				fontSize: "1.1em",
-			},
-			dark: {
-				...darkDefaultTheme,
-				colors: {
-					...darkDefaultTheme.colors,
-					editor: {
-						text: "#ffffff",
-						background: "#1f2937",
-					},
-				},
-				fontSize: "1.1em",
-			},
-		}),
-		[]
-	);
-
-	// 初期ロード中またはデータがない場合はローディング表示
-	if (initialContent === "loading" || !memo) {
-		return (
-			<div className="flex justify-center items-center h-screen">
-				Loading...
-			</div>
-		);
+	// memoまたはeditorがない場合はnullを返す
+	if (!memo || !editor) {
+		return null;
 	}
 
 	// メインのレンダリング
@@ -282,7 +277,8 @@ const Memo: React.FC = () => {
 					onChange={(e) => handleTitleChange(e.target.value)}
 					onKeyDown={handleTitleKeyDown}
 					className="w-full p-2 mb-3 text-4xl font-bold outline-none bg-transparent border-b border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200 text-gray-800 dark:text-gray-200"
-					placeholder=""
+					placeholder="無題"
+					ref={titleRef}
 				/>
 			</div>
 			{/* BlockNoteエディタ */}

@@ -1,20 +1,45 @@
 import React, { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import memoApi from "../../api/memoApi";
+import { useRecoilValue } from "recoil";
+import { userStateAtom } from "../../atoms/userAtoms";
+import { Link } from "react-router-dom";
 
 interface RecentAccessItem {
-	name: string;
-	time: string;
+	id: string;
+	title: string;
+	icon: string;
+	lastAccessedAt: string;
 }
 
-interface RecentAccessProps {
-	recentAccess: RecentAccessItem[];
-}
-
-const RecentAccess: React.FC<RecentAccessProps> = ({ recentAccess }) => {
+const RecentAccess: React.FC = () => {
+	const [recentAccess, setRecentAccess] = useState<RecentAccessItem[]>([]);
 	const [hiddenSection, setHiddenSection] = useState<boolean>(false);
 	const [currentPage, setCurrentPage] = useState<number>(0);
 	const [isHovered, setIsHovered] = useState<boolean>(false);
+	const [isLoading, setIsLoading] = useState<boolean>(true);
+	const [error, setError] = useState<string | null>(null);
 	const containerRef = useRef<HTMLDivElement>(null);
+
+	const user = useRecoilValue(userStateAtom);
+
+	useEffect(() => {
+		const fetchRecentAccess = async () => {
+			setIsLoading(true);
+			try {
+				const response = await memoApi.recent(user);
+				setRecentAccess(response.data);
+				setError(null);
+			} catch (error) {
+				console.error("Failed to fetch recent access data:", error);
+				setError("Failed to load recent access data");
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchRecentAccess();
+	}, []);
 
 	const toggleSection = (): void => {
 		setHiddenSection(!hiddenSection);
@@ -37,6 +62,18 @@ const RecentAccess: React.FC<RecentAccessProps> = ({ recentAccess }) => {
 			containerRef.current.scrollLeft = 0;
 		}
 	}, [currentPage]);
+
+	if (isLoading) {
+		return <div>Loading...</div>;
+	}
+
+	if (error) {
+		return <div>{error}</div>;
+	}
+
+	if (recentAccess.length === 0) {
+		return <div>No recent access data available.</div>;
+	}
 
 	return (
 		<div className="mb-8">
@@ -75,21 +112,28 @@ const RecentAccess: React.FC<RecentAccessProps> = ({ recentAccess }) => {
 							damping: 30,
 						}}
 					>
-						{recentAccess.map((item, index) => (
+						{recentAccess.map((item) => (
 							<div
-								key={index}
-								className="bg-[#2a2a2a] p-4 rounded-md min-w-[200px] flex-shrink-0"
+								key={item.id}
+								className="bg-[#3d3b3b] p-4 rounded-md min-w-[200px] flex-shrink-0"
 							>
-								<div className="flex items-center space-x-2 text-white">
-									<i className="fas fa-file-alt text-xl"></i>
-									<span>{item.name}</span>
-								</div>
-								<p className="text-gray-400">{item.time}</p>
+								<Link
+									to={`/memo/${item.id}`}
+									className="flex items-center space-x-2 dark:text-white"
+								>
+									{item.icon} {item.title}
+								</Link>
+
+								<p className="text-gray-400">
+									{new Date(
+										item.lastAccessedAt
+									).toLocaleString()}
+								</p>
 							</div>
 						))}
 					</motion.div>
 					<AnimatePresence>
-						{isHovered && (
+						{isHovered && recentAccess.length > 6 && (
 							<>
 								<motion.div
 									initial={{ opacity: 0 }}

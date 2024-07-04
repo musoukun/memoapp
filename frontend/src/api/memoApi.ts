@@ -8,6 +8,7 @@ const memoApi = {
 	update: (id: string, params: any) => axiosClient.put(`memo/${id}`, params),
 	getFavorites: () => axiosClient.get("memo/favorites"),
 	delete: (id: string) => axiosClient.delete(`memo/${id}`),
+	recent: (user: any) => axiosClient.get("memo/recent", user),
 };
 
 export default memoApi;

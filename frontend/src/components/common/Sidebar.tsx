@@ -76,7 +76,7 @@ const Sidebar = () => {
 			const res = await memoApi.create();
 			const newMemos = [...memos, res.data];
 			setMemos(newMemos);
-			navigate(`/memo/${res.data.id}`);
+			navigate(`/memo/${res.data.id}/?new=true`);
 		} catch (err: any) {
 			alert(err.status + ": " + err.statusText);
 		}

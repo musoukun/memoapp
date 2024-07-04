@@ -26,18 +26,20 @@ model Memo {
   userId            String
   sections          Section[] // MemoからSectionへの一対多のリレーションを追加
   icon              String    @default("📝")
-  title             String    @default("無題")
+  title             String    @default("")
   description       Json      @default("{}")
   position          Int?
   favorite          Boolean   @default(false)
   favoritePosition  Int       @default(0)
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
+  lastAccessedAt    DateTime  @default(now())
+  accessCount       Int       @default(0)
   user              User      @relation(fields: [userId], references: [id])
 
   @@index([userId], name: "index_memos_on_user_id")
+  @@index([lastAccessedAt], name: "index_memos_on_last_accessed_at")
 }
-
 model Section {
   id         String   @id @default(uuid())
   memoId     String

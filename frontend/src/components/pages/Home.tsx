@@ -21,14 +21,13 @@ interface MainDashboardProps {
 
 const MainDashboard: React.FC<MainDashboardProps> = ({
 	title,
-	recentAccess,
 	events,
 	tasks,
 }) => {
 	return (
 		<div className="dark:bg-gray-800 min-h-screen p-6">
 			<DashboardTitle title={title} />
-			<RecentAccess recentAccess={recentAccess} />
+			<RecentAccess />
 			<WeeklyEvents events={events} />
 			<MyTasks tasks={tasks} />
 		</div>
