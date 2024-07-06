@@ -1,20 +1,23 @@
 import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { ColumnArray, Kanban } from "../../../types/kanban";
 
 const prisma = new PrismaClient();
 
-const initialKanban = {
-	id: "column-1",
-	ColumnTitle: "kanban",
-	cards: [{ id: "card-1", title: "カード1" }],
-};
+const initialKanban: ColumnArray = [
+	{
+		id: "column-1",
+		ColumnTitle: "kanban",
+		cards: [{ id: "card-1", title: "カード1" }],
+	},
+];
 
 export const create = async (req: Request, res: Response) => {
 	try {
 		const kanban = await prisma.kanban.create({
 			data: {
 				userId: req.user.id,
-				data: initialKanban,
+				data: initialKanban as ColumnArray,
 			},
 		});
 		console.log("kanban created:", kanban);

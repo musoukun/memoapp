@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { DndContext, DragEndEvent, closestCorners } from "@dnd-kit/core";
 import { CardDetails } from "./CardDetail";
-import { Card, Kanban } from "../../types/kanban";
+import { Column as ColumnType, Card, Kanban } from "../../types/kanban";
 import { Column } from "./Column";
 import kanbanApi from "../../api/kanbanApi";
 import { AxiosResponse } from "axios";
@@ -151,6 +151,27 @@ export function KanbanBoard() {
 		});
 	};
 
+	const handleAddColumn = async () => {
+		if (!kanban) return;
+
+		const newColumn: ColumnType = {
+			id: `column-${Date.now()}`,
+			ColumnTitle: "新しい列",
+			cards: [],
+		};
+
+		setKanban((prevKanban) => {
+			if (!prevKanban) return null;
+
+			const updatedKanban = {
+				...prevKanban,
+				data: [...prevKanban.data, newColumn],
+			};
+			updateKanbanData(updatedKanban);
+			return updatedKanban;
+		});
+	};
+
 	const updateKanbanData = async (updatedKanban: Kanban) => {
 		try {
 			await kanbanApi.update(updatedKanban.id, updatedKanban);
@@ -180,6 +201,12 @@ export function KanbanBoard() {
 							onAddCard={handleAddCard}
 						/>
 					))}
+					<button
+						onClick={handleAddColumn}
+						className="bg-[#161b22] text-[#c9d1d9] px-4 py-2 rounded-lg"
+					>
+						+ 新しい列
+					</button>
 				</div>
 			</DndContext>
 			{selectedCard && (

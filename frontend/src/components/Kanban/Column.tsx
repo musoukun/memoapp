@@ -1,4 +1,3 @@
-import React from "react";
 import { useDroppable } from "@dnd-kit/core";
 import { Card } from "./Card";
 import { Card as CardType, Column as ColumnType } from "../../types/kanban";
@@ -21,7 +20,10 @@ export function Column({
 	});
 
 	return (
-		<div ref={setNodeRef} className="bg-[#161b22] rounded-xl w-[300px] p-4">
+		<div
+			ref={setNodeRef}
+			className="dark:bg-[#161b22] rounded-xl w-[300px] p-4"
+		>
 			<div className="flex justify-between items-center mb-2">
 				<span className="text-[#c9d1d9]">{column.ColumnTitle}</span>
 				<span className="text-[#8b949e]">{column.cards.length}</span>
