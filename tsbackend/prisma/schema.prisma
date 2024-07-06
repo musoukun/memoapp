@@ -14,17 +14,17 @@ datasource db {
 
 model User {
   id             String   @id @default(uuid())
-  memos          Memo[]
+  memos          Note[]
   username       String?  @unique
   passwordDigest String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
 }
 
-model Memo {
+model Note {
   id                String    @id @default(uuid())
   userId            String
-  sections          Section[] // MemoからSectionへの一対多のリレーションを追加
+  sections          Section[] // NoteからSectionへの一対多のリレーションを追加
   icon              String    @default("📝")
   title             String    @default("")
   description       Json      @default("{}")
@@ -46,7 +46,7 @@ model Section {
   title      String   @default("")
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
-  memo       Memo     @relation(fields: [memoId], references: [id])
+  memo       Note     @relation(fields: [memoId], references: [id])
 
   @@index([memoId], name: "index_sections_on_memo_id")
 }
