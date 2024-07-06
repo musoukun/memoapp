@@ -1,12 +1,12 @@
 /* eslint-disable prefer-const */
-import { Memo, PrismaClient } from "@prisma/client";
+import { Note, PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 import { Request, Response } from "express";
-import { CustomRequest } from "../types/memo";
-import { MemoPositionUpdateBody } from "../types/memo";
+import { CustomRequest } from "../types/note";
+import { NotePositionUpdateBody } from "../types/note";
 
 export const test = async (req: Request, res: Response) => {
-	res.send("memoAPI test");
+	res.send("noteAPI test");
 };
 
 export const create = async (
@@ -14,14 +14,14 @@ export const create = async (
 	res: Response
 ) => {
 	try {
-		const memoCount = await prisma.memo.count();
-		const memo = await prisma.memo.create({
+		const noteCount = await prisma.note.count();
+		const note = await prisma.note.create({
 			data: {
 				userId: req.user!.id,
-				position: memoCount,
+				position: noteCount,
 			},
 		});
-		res.status(201).json(memo);
+		res.status(201).json(note);
 	} catch (err) {
 		res.status(500).json(err);
 	}
@@ -29,26 +29,26 @@ export const create = async (
 
 export const getAll = async (req: CustomRequest<{}>, res: Response) => {
 	try {
-		const memos = await prisma.memo.findMany({
+		const notes = await prisma.note.findMany({
 			where: { userId: req.user!.id },
 			orderBy: { position: "asc" },
 		});
-		res.status(200).json(memos);
+		res.status(200).json(notes);
 	} catch (err) {
 		res.status(500).json(err);
 	}
 };
 
 export const updatePosition = async (
-	req: CustomRequest<MemoPositionUpdateBody>,
+	req: CustomRequest<NotePositionUpdateBody>,
 	res: Response
 ) => {
-	const { memos } = req.body as MemoPositionUpdateBody;
+	const { notes } = req.body as NotePositionUpdateBody;
 	try {
 		await Promise.all(
-			memos.reverse().map((memo, index) =>
-				prisma.memo.update({
-					where: { id: memo.id },
+			notes.reverse().map((note, index) =>
+				prisma.note.update({
+					where: { id: note.id },
 					data: { position: index },
 				})
 			)
@@ -60,38 +60,38 @@ export const updatePosition = async (
 };
 
 export const getOne = async (req: CustomRequest<{}>, res: Response) => {
-	const memoId = req.params.memoId!;
+	const noteId = req.params.noteId!;
 	try {
-		const memo = await prisma.memo.findUnique({
-			where: { id: memoId, userId: req.user!.id },
+		const note = await prisma.note.findUnique({
+			where: { id: noteId, userId: req.user!.id },
 		});
-		if (!memo) return res.status(404).json("メモが存在しません");
-		res.status(200).json(memo);
+		if (!note) return res.status(404).json("メモが存在しません");
+		res.status(200).json(note);
 	} catch (err) {
 		res.status(500).json(err);
 	}
 };
 
-export const update = async (req: CustomRequest<Memo>, res: Response) => {
-	const memoId = req.params.memoId!;
-	let { title, description, favorite, icon } = req.body as Memo;
+export const update = async (req: CustomRequest<Note>, res: Response) => {
+	const noteId = req.params.noteId!;
+	let { title, description, favorite, icon } = req.body as Note;
 
 	title = title === "" ? "" : title;
 	description = description === "" ? "" : description;
 
 	try {
 		// 現在のメモを取得
-		const currentMemo = await prisma.memo.findUnique({
-			where: { id: memoId },
+		const currentNote = await prisma.note.findUnique({
+			where: { id: noteId },
 		});
 
-		if (!currentMemo) {
+		if (!currentNote) {
 			return res.status(404).json("メモが存在しません");
 		}
 
 		// メモの内容を更新
-		const updatedMemo = await prisma.memo.update({
-			where: { id: memoId },
+		const updatedNote = await prisma.note.update({
+			where: { id: noteId },
 			data: {
 				title,
 				description,
@@ -103,7 +103,7 @@ export const update = async (req: CustomRequest<Memo>, res: Response) => {
 			},
 		});
 
-		res.status(200).json(updatedMemo);
+		res.status(200).json(updatedNote);
 	} catch (err) {
 		res.status(500).json(err.message);
 	}
@@ -111,7 +111,7 @@ export const update = async (req: CustomRequest<Memo>, res: Response) => {
 
 export const getFavorites = async (req: CustomRequest<{}>, res: Response) => {
 	try {
-		const favorites = await prisma.memo.findMany({
+		const favorites = await prisma.note.findMany({
 			where: { userId: req.user!.id, favorite: true },
 			orderBy: { favoritePosition: "desc" },
 		});
@@ -121,11 +121,11 @@ export const getFavorites = async (req: CustomRequest<{}>, res: Response) => {
 	}
 };
 
-export const deleteMemo = async (req: CustomRequest<{}>, res: Response) => {
-	const memoId = req.params.memoId!;
+export const deleteNote = async (req: CustomRequest<{}>, res: Response) => {
+	const noteId = req.params.noteId!;
 	try {
-		await prisma.memo.delete({
-			where: { id: memoId },
+		await prisma.note.delete({
+			where: { id: noteId },
 		});
 		res.status(200).json("メモを削除しました");
 	} catch (err) {
@@ -134,14 +134,14 @@ export const deleteMemo = async (req: CustomRequest<{}>, res: Response) => {
 };
 
 // メモの最近のアクセス履歴を取得
-export const getRecentMemos = async (req: CustomRequest<{}>, res: Response) => {
+export const getRecentNotes = async (req: CustomRequest<{}>, res: Response) => {
 	const userId = req.user.id!;
 
 	try {
-		const recentMemos = await prisma.memo.findMany({
+		const recentNotes = await prisma.note.findMany({
 			where: { userId: userId },
 			orderBy: { lastAccessedAt: "desc" },
-			take: 10, // Limit to 10 most recent memos
+			take: 10, // Limit to 10 most recent notes
 			select: {
 				id: true,
 				title: true,
@@ -150,8 +150,8 @@ export const getRecentMemos = async (req: CustomRequest<{}>, res: Response) => {
 			},
 		});
 
-		res.json(recentMemos);
+		res.json(recentNotes);
 	} catch (error) {
-		res.status(500).json({ error: "Failed to fetch recent memos" });
+		res.status(500).json({ error: "Failed to fetch recent notes" });
 	}
 };

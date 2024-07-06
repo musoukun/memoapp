@@ -1,8 +1,8 @@
 import express, { NextFunction, Request, Response } from "express";
 import { body, validationResult } from "express-validator";
-import * as validation from "../handlers/validation";
+import * as validation from "../middleware/validation";
 import * as userController from "../controllers/user";
-import * as tokenHandler from "../handlers/tokenHandler";
+import * as tokenHandler from "../middleware/tokenHandler";
 import { PrismaClient } from "@prisma/client";
 
 const router = express.Router();

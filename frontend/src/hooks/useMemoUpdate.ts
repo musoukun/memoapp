@@ -1,33 +1,33 @@
-// hooks/useMemoUpdate.ts
+// hooks/useNoteUpdate.ts
 import { useSetRecoilState } from "recoil";
-import { memosStateAtom } from "../atoms/memoAtoms";
-import memoApi from "../api/memoApi";
-import { Memo } from "../types/api";
+import { notesStateAtom } from "../atoms/noteAtoms";
+import noteApi from "../api/noteApi";
+import { Note } from "../types/api";
 
-export const useMemoUpdate = () => {
-	const setMemos = useSetRecoilState(memosStateAtom);
+export const useNoteUpdate = () => {
+	const setNotes = useSetRecoilState(notesStateAtom);
 
-	const updateMemo = async (id: string, updates: Partial<Memo>) => {
+	const updateNote = async (id: string, updates: Partial<Note>) => {
 		try {
-			const updatedMemo = await memoApi.update(id, updates);
-			// console.log("Updated memo data:", updatedMemo);
-			return updatedMemo;
+			const updatedNote = await noteApi.update(id, updates);
+			// console.log("Updated note data:", updatedNote);
+			return updatedNote;
 		} catch (error) {
-			console.error("Failed to update memo:", error);
+			console.error("Failed to update note:", error);
 			throw error;
 		}
 	};
 
 	const updateSidebarInfo = (
 		id: string,
-		updates: Partial<Pick<Memo, "title" | "favorite" | "icon" | "delete">>
+		updates: Partial<Pick<Note, "title" | "favorite" | "icon" | "delete">>
 	) => {
-		setMemos((prevMemos) =>
-			prevMemos.map((memo) =>
-				memo.id === id ? { ...memo, ...updates } : memo
+		setNotes((prevNotes) =>
+			prevNotes.map((note) =>
+				note.id === id ? { ...note, ...updates } : note
 			)
 		);
 	};
 
-	return { updateMemo, updateSidebarInfo };
+	return { updateNote, updateSidebarInfo };
 };

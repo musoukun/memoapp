@@ -1,59 +1,59 @@
 import { Router } from "express";
-import * as memoController from "../controllers/memo";
-import * as tokenHandler from "../handlers/tokenHandler";
+import * as noteController from "../controllers/note";
+import * as tokenHandler from "../middleware/tokenHandler";
 import { param } from "express-validator";
-import * as validation from "../handlers/validation";
+import * as validation from "../middleware/validation";
 
 const router = Router();
 
-router.get("/test", memoController.test);
+router.get("/test", noteController.test);
 
 //📝を作成
-router.post("/", tokenHandler.verifyToken, memoController.create);
+router.post("/", tokenHandler.verifyToken, noteController.create);
 //📝を取得
-router.get("/", tokenHandler.verifyToken, memoController.getAll);
+router.get("/", tokenHandler.verifyToken, noteController.getAll);
 
 // メモを更新
-router.put("/", tokenHandler.verifyToken, memoController.updatePosition);
+router.put("/", tokenHandler.verifyToken, noteController.updatePosition);
 // お気に入りメモを取得
-router.get("/favorites", tokenHandler.verifyToken, memoController.getFavorites);
+router.get("/favorites", tokenHandler.verifyToken, noteController.getFavorites);
 // 最近のメモを取得
-router.get("/recent", tokenHandler.verifyToken, memoController.getRecentMemos);
+router.get("/recent", tokenHandler.verifyToken, noteController.getRecentNotes);
 
 router.get(
-	"/:memoId",
-	param("memoId").custom((value) => {
+	"/:noteId",
+	param("noteId").custom((value) => {
 		if (!validation.isObjectId(value)) {
 			return Promise.reject("無効なIDです。");
 		} else return Promise.resolve();
 	}),
 	validation.validate,
 	tokenHandler.verifyToken,
-	memoController.getOne
+	noteController.getOne
 );
 
 router.put(
-	"/:memoId",
-	param("memoId").custom((value) => {
+	"/:noteId",
+	param("noteId").custom((value) => {
 		if (!validation.isObjectId(value)) {
 			return Promise.reject("無効なIDです。");
 		} else return Promise.resolve();
 	}),
 	validation.validate,
 	tokenHandler.verifyToken,
-	memoController.update
+	noteController.update
 );
 
 router.delete(
-	"/:memoId",
-	param("memoId").custom((value) => {
+	"/:noteId",
+	param("noteId").custom((value) => {
 		if (!validation.isObjectId(value)) {
 			return Promise.reject("無効なIDです。");
 		} else return Promise.resolve();
 	}),
 	validation.validate,
 	tokenHandler.verifyToken,
-	memoController.deleteMemo
+	noteController.deleteNote
 );
 
 export default router;

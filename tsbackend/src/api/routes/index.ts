@@ -1,11 +1,11 @@
 import express from "express";
 import authRouter from "./auth";
-import memoRouter from "./memo";
+import noteRouter from "./note";
 
 const router = express.Router();
 
 /* GET home page. */
 router.use("/auth", authRouter);
-router.use("/memo", memoRouter);
+router.use("/note", noteRouter);
 
 export default router;

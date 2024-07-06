@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, {
 	useEffect,
-	useMemo,
+	useNote,
 	useState,
 	useCallback,
 	useRef,
@@ -11,23 +11,23 @@ import { BlockNoteView } from "@blocknote/react";
 import "@blocknote/core/fonts/inter.css";
 import "@blocknote/react/style.css";
 import "@mantine/core/styles.css";
-import memoApi from "../../api/memoApi";
-import { useMemoUpdate } from "../../hooks/useMemoUpdate";
+import noteApi from "../../api/noteApi";
+import { useNoteUpdate } from "../../hooks/useNoteUpdate";
 import EmojiPicker from "../common/EmojiPicker";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
 import { BlockNoteEditor, PartialBlock } from "@blocknote/core";
 import { customTheme } from "../blocknoteComponent/BlocknoteTheme";
 
-const Memo: React.FC = () => {
+const Note: React.FC = () => {
 	// ナビゲーション関連のフック
 	const navigate = useNavigate();
 	const { id } = useParams(); // URLからメモIDを取得
 
 	// カスタムフックとRecoil状態管理
-	const { updateMemo, updateSidebarInfo } = useMemoUpdate();
+	const { updateNote, updateSidebarInfo } = useNoteUpdate();
 
-	const [memo, setMemo] = useState<{
+	const [note, setNote] = useState<{
 		title: string;
 		description: string;
 		icon: string;
@@ -43,16 +43,16 @@ const Memo: React.FC = () => {
 
 	// 参照を使用した状態管理
 	const savingRef = useRef(false); // 保存中かどうかを追跡
-	const memoRef = useRef(memo); // 最新のmemo状態を追跡
+	const noteRef = useRef(note); // 最新のnote状態を追跡
 	const updateTimeoutRef = useRef<NodeJS.Timeout | null>(null); // デバウンス用のタイマーを追跡
 	const editorRef = useRef<HTMLDivElement>(null); // エディタのDOM要素への参照
 	const titleRef = useRef<HTMLInputElement>(null); // タイトル入力フィールドへの参照
 
-	// memoの更新時にrefを更新
+	// noteの更新時にrefを更新
 	useEffect(() => {
-		// memoが変更されるたびに、memoRefを更新
-		memoRef.current = memo;
-	}, [memo]);
+		// noteが変更されるたびに、noteRefを更新
+		noteRef.current = note;
+	}, [note]);
 
 	// コンポーネントマウント時にメモを読み込む
 	useEffect(() => {
@@ -60,17 +60,17 @@ const Memo: React.FC = () => {
 		const loadFromAPI = async () => {
 			try {
 				// APIからメモデータを取得
-				const fetchedMemo = await memoApi.show(id as string);
+				const fetchedNote = await noteApi.show(id as string);
 				// ローカル状態とグローバル状態を更新
-				setMemo(fetchedMemo.data);
+				setNote(fetchedNote.data);
 				// メモの説明がある場合はJSONをパースして返す、なければundefined
-				console.log("Fetched memo:", fetchedMemo.data.description);
+				console.log("Fetched note:", fetchedNote.data.description);
 
 				return JSON.parse(
-					fetchedMemo.data.description
+					fetchedNote.data.description
 				) as PartialBlock[];
 			} catch (err) {
-				console.error("Failed to fetch memo:", err);
+				console.error("Failed to fetch note:", err);
 			}
 		};
 
@@ -85,7 +85,7 @@ const Memo: React.FC = () => {
 		if (searchParams.get("new") === "true") {
 			setInitialContent(emptyBlock);
 			// Titleを空に設定
-			setMemo({
+			setNote({
 				title: "",
 				description: JSON.stringify(emptyBlock),
 				icon: "📝",
@@ -106,7 +106,7 @@ const Memo: React.FC = () => {
 
 	// BlockNoteエディタの初期化
 	// initialContentが空またはundefinedの場合はeditorインスタンスを生成する
-	const editor = useMemo(() => {
+	const editor = useNote(() => {
 		if (!initialContent === undefined) {
 			// メモの作成に失敗していることをエラー通知
 			console.error(
@@ -144,16 +144,16 @@ const Memo: React.FC = () => {
 
 	// エディタの内容が変更されたときのハンドラ
 	const handleContentChange = () => {
-		if (editor && memoRef.current) {
+		if (editor && noteRef.current) {
 			// エディタの内容をJSON文字列に変換
 			const newDescription = JSON.stringify(editor.document);
 			// ローカル状態を更新
-			setMemo((prev) => ({ ...prev!, description: newDescription }));
+			setNote((prev) => ({ ...prev!, description: newDescription }));
 			// デバウンスされた更新を実行
 			debouncedUpdate(1300, async () => {
-				if (id && memoRef.current) {
+				if (id && noteRef.current) {
 					// APIを呼び出してメモを更新
-					await updateMemo(id, { description: newDescription });
+					await updateNote(id, { description: newDescription });
 				}
 			});
 		}
@@ -161,14 +161,14 @@ const Memo: React.FC = () => {
 
 	// タイトルが変更されたときのハンドラ
 	const handleTitleChange = (newTitle: string) => {
-		if (id && memoRef.current) {
+		if (id && noteRef.current) {
 			// ローカル状態を更新
-			setMemo((prev) => ({ ...prev!, title: newTitle }));
+			setNote((prev) => ({ ...prev!, title: newTitle }));
 			// デバウンスされた更新を実行
 			debouncedUpdate(300, async () => {
-				if (id && memoRef.current) {
+				if (id && noteRef.current) {
 					// APIを呼び出してメモを更新
-					await updateMemo(id, { title: newTitle });
+					await updateNote(id, { title: newTitle });
 					// サイドバーの情報も更新
 					updateSidebarInfo(id, { title: newTitle });
 				}
@@ -190,12 +190,12 @@ const Memo: React.FC = () => {
 
 	// お気に入り状態をトグルするハンドラ
 	const handleFavoriteToggle = async () => {
-		if (id && memoRef.current) {
-			const newFavorite = !memoRef.current.favorite;
+		if (id && noteRef.current) {
+			const newFavorite = !noteRef.current.favorite;
 			// ローカル状態を更新
-			setMemo((prev) => ({ ...prev!, favorite: newFavorite }));
+			setNote((prev) => ({ ...prev!, favorite: newFavorite }));
 			// APIを呼び出してメモを更新
-			await updateMemo(id, { favorite: newFavorite });
+			await updateNote(id, { favorite: newFavorite });
 			// サイドバーの情報も更新
 			updateSidebarInfo(id, { favorite: newFavorite });
 		}
@@ -203,34 +203,34 @@ const Memo: React.FC = () => {
 
 	// アイコンが変更されたときのハンドラ
 	const handleIconChange = async (newIcon: string) => {
-		if (id && memoRef.current) {
+		if (id && noteRef.current) {
 			// ローカル状態を更新
-			setMemo((prev) => ({ ...prev!, icon: newIcon }));
+			setNote((prev) => ({ ...prev!, icon: newIcon }));
 			// APIを呼び出してメモを更新
-			await updateMemo(id, { icon: newIcon });
+			await updateNote(id, { icon: newIcon });
 			// サイドバーの情報も更新
 			updateSidebarInfo(id, { icon: newIcon });
 		}
 	};
 
 	// メモを削除するハンドラ
-	const deleteMemo = async () => {
+	const deleteNote = async () => {
 		if (id) {
 			try {
 				// APIを呼び出してメモを削除
-				await memoApi.delete(id);
+				await noteApi.delete(id);
 				// サイドバーの情報も更新
 				updateSidebarInfo(id, { delete: true });
 				// メモ一覧ページにナビゲート
-				navigate("/memo");
+				navigate("/note");
 			} catch (error) {
-				console.error("Failed to delete memo:", error);
+				console.error("Failed to delete note:", error);
 			}
 		}
 	};
 
-	// memoまたはeditorがない場合はnullを返す
-	if (!memo || !editor) {
+	// noteまたはeditorがない場合はnullを返す
+	if (!note || !editor) {
 		return null;
 	}
 
@@ -249,7 +249,7 @@ const Memo: React.FC = () => {
 					onClick={handleFavoriteToggle}
 					className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"
 				>
-					{memo.favorite ? (
+					{note.favorite ? (
 						<FontAwesomeIcon
 							icon={faStar}
 							className="text-yellow-500"
@@ -262,7 +262,7 @@ const Memo: React.FC = () => {
 					)}
 				</button>
 				<button
-					onClick={deleteMemo}
+					onClick={deleteNote}
 					className="p-2 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700 text-red-500"
 				>
 					<FontAwesomeIcon icon={faTrashAlt} />
@@ -271,10 +271,10 @@ const Memo: React.FC = () => {
 			{/* アイコンとタイトル入力 */}
 			<div className="ml-12 mt-2">
 				<div className="p-1 h-8 mb-5">
-					<EmojiPicker icon={memo.icon} onChange={handleIconChange} />
+					<EmojiPicker icon={note.icon} onChange={handleIconChange} />
 				</div>
 				<input
-					value={memo.title}
+					value={note.title}
 					onChange={(e) => handleTitleChange(e.target.value)}
 					onKeyDown={handleTitleKeyDown}
 					className="w-full p-2 mb-3 text-4xl font-bold outline-none bg-transparent border-b border-gray-200 dark:border-gray-700 focus:border-blue-500 dark:focus:border-blue-400 transition-colors duration-200 text-gray-800 dark:text-gray-200"
@@ -296,4 +296,4 @@ const Memo: React.FC = () => {
 	);
 };
 
-export default Memo;
+export default Note;

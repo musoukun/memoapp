@@ -4,7 +4,7 @@ import Login from "./components/pages/Login";
 import Register from "./components/pages/Register";
 import AppLayout from "./components/layout/AppLayout";
 import Home from "./components/pages/Home";
-import Memo from "./components/pages/Memo";
+import Note from "./components/pages/Note";
 import { useEffect } from "react";
 
 function App() {
@@ -84,11 +84,11 @@ function App() {
 							}
 						/>
 						<Route
-							path="memo/:id"
-							element={<Memo {...useParams()} />}
+							path="note/:id"
+							element={<Note {...useParams()} />}
 						/>
 						<Route
-							path="memo"
+							path="note"
 							element={
 								<Home
 									title={"ホーム"}

@@ -4,14 +4,14 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTrash } from "@fortawesome/free-solid-svg-icons";
 
 interface DropdownMenuProps {
-	memoId: string;
+	noteId: string;
 	position: { x: number; y: number };
 	onClose: () => void;
 	onDelete: (id: string) => void;
 }
 
 const DropdownMenu: React.FC<DropdownMenuProps> = ({
-	memoId,
+	noteId,
 	position,
 	onClose,
 	onDelete,
@@ -50,7 +50,7 @@ const DropdownMenu: React.FC<DropdownMenuProps> = ({
 				aria-labelledby="options-menu"
 			>
 				<button
-					onClick={() => onDelete(memoId)}
+					onClick={() => onDelete(noteId)}
 					className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-600"
 					role="menuitem"
 				>

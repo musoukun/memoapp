@@ -1,8 +1,8 @@
 import { atom } from "recoil";
-import { MemoLine } from "../types/memoLine.ts";
+import { NoteLine } from "../types/noteLine.ts";
 
-export const memoLineAtom = atom<MemoLine>({
-	key: "memoLineAtom",
+export const noteLineAtom = atom<NoteLine>({
+	key: "noteLineAtom",
 	default: {
 		id: "",
 		text: "",
@@ -10,8 +10,8 @@ export const memoLineAtom = atom<MemoLine>({
 	},
 });
 
-export const memoLinesAtom = atom<MemoLine[]>({
-	key: "memoLinesAtom",
+export const noteLinesAtom = atom<NoteLine[]>({
+	key: "noteLinesAtom",
 	// このdefaultに0番目の要素を追加してください
 	default: [
 		{

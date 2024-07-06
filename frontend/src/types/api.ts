@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // メモのデータ構造を表す型
-type Memo = {
+type Note = {
 	[x: string]: any;
 	id?: string; // 新規作成時にはidがないため、オプショナルとする
 	title: string;
@@ -14,23 +14,23 @@ type Memo = {
 };
 
 // メモ取得APIのレスポンスの型
-type GetMemoResponse = {
-	data: Memo;
+type GetNoteResponse = {
+	data: Note;
 };
 
 // メモ更新APIのリクエストの型
-type UpdateMemoRequest = {
+type UpdateNoteRequest = {
 	title: string;
 	description: string;
 };
 
 // メモ更新APIのレスポンスの型
-type UpdateMemoResponse = {
-	data: Memo; // 更新されたメモのデータ
+type UpdateNoteResponse = {
+	data: Note; // 更新されたメモのデータ
 };
 
 // メモ削除APIのレスポンスの型（成功時のステータスコードやメッセージなどに応じて定義）
-type DeleteMemoResponse = {
+type DeleteNoteResponse = {
 	message: string; // 例: 'メモが削除されました'
 };
 
@@ -53,31 +53,31 @@ type ErrorResponse = {
 	message: string;
 };
 
-type UpdateMemoBody = {
+type UpdateNoteBody = {
 	title: string;
 	description: string;
 	favorite?: boolean;
 };
 
-type MemoPositionUpdateBody = {
-	memos: { id: string }[];
+type NotePositionUpdateBody = {
+	notes: { id: string }[];
 };
 
 interface CustomRequest<T> {
 	user?: { id: string };
 	body: T | ReadableStream<Uint8Array> | null;
-	params: { memoId?: string };
+	params: { noteId?: string };
 }
 
 export type {
-	Memo,
+	Note,
 	CustomRequest,
-	UpdateMemoBody,
-	MemoPositionUpdateBody,
-	GetMemoResponse,
-	UpdateMemoRequest,
-	UpdateMemoResponse,
-	DeleteMemoResponse,
+	UpdateNoteBody,
+	NotePositionUpdateBody,
+	GetNoteResponse,
+	UpdateNoteRequest,
+	UpdateNoteResponse,
+	DeleteNoteResponse,
 	RegisterParams,
 	LoginParams,
 	AuthResponse,

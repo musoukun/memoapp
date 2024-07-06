@@ -2,13 +2,13 @@ import { useEffect, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useRecoilState, useRecoilValue, useResetRecoilState } from "recoil";
 import { userStateAtom } from "../../atoms/userAtoms";
-import memoApi from "../../api/memoApi";
+import noteApi from "../../api/noteApi";
 import {
-	favoriteMemosSelector,
-	memoStateAtom,
-	memosStateAtom,
-	sortedMemosSelector,
-} from "../../atoms/memoAtoms";
+	favoriteNotesSelector,
+	noteStateAtom,
+	notesStateAtom,
+	sortedNotesSelector,
+} from "../../atoms/noteAtoms";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import {
 	faPlusSquare,
@@ -21,39 +21,39 @@ const Sidebar = () => {
 	// const [activeIndex] = useState(0);
 	const navigate = useNavigate();
 	const user = useRecoilValue(userStateAtom);
-	const [memos, setMemos] = useRecoilState(memosStateAtom);
-	const sortedMemos = useRecoilValue(sortedMemosSelector);
-	const favoriteMemos = useRecoilValue(favoriteMemosSelector);
+	const [notes, setNotes] = useRecoilState(notesStateAtom);
+	const sortedNotes = useRecoilValue(sortedNotesSelector);
+	const favoriteNotes = useRecoilValue(favoriteNotesSelector);
 	const [isLoggingOut, setIsLoggingOut] = useState(false);
-	const resetMemos = useResetRecoilState(memosStateAtom);
-	const resetMemo = useResetRecoilState(memoStateAtom);
+	const resetNotes = useResetRecoilState(notesStateAtom);
+	const resetNote = useResetRecoilState(noteStateAtom);
 	const resetUser = useResetRecoilState(userStateAtom);
 	// const location = useLocation();
 
-	const [hoveredMemo, setHoveredMemo] = useState<string | null>(null);
+	const [hoveredNote, setHoveredNote] = useState<string | null>(null);
 	const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 	const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
 
 	useEffect(() => {
-		const fetchMemos = async () => {
+		const fetchNotes = async () => {
 			try {
-				const response = await memoApi.getAll();
-				setMemos(response.data);
+				const response = await noteApi.getAll();
+				setNotes(response.data);
 			} catch (error) {
-				console.error("Failed to fetch memos:", error);
+				console.error("Failed to fetch notes:", error);
 			}
 		};
 
-		fetchMemos();
-	}, [setMemos]);
+		fetchNotes();
+	}, [setNotes]);
 
 	const logout = async () => {
 		if (isLoggingOut) return;
 		setIsLoggingOut(true);
 		try {
 			localStorage.removeItem("token");
-			resetMemos();
-			resetMemo();
+			resetNotes();
+			resetNote();
 			resetUser();
 			navigate("/login");
 		} catch (error) {
@@ -71,40 +71,40 @@ const Sidebar = () => {
 		}
 	};
 
-	const addMemo = async () => {
+	const addNote = async () => {
 		try {
-			const res = await memoApi.create();
-			const newMemos = [...memos, res.data];
-			setMemos(newMemos);
-			navigate(`/memo/${res.data.id}/?new=true`);
+			const res = await noteApi.create();
+			const newNotes = [...notes, res.data];
+			setNotes(newNotes);
+			navigate(`/note/${res.data.id}/?new=true`);
 		} catch (err: any) {
 			alert(err.status + ": " + err.statusText);
 		}
 	};
 
-	const handleDeleteMemo = async (id: string) => {
+	const handleDeleteNote = async (id: string) => {
 		try {
-			await memoApi.delete(id);
-			const updatedMemos = memos.filter((memo) => memo.id !== id);
-			setMemos(updatedMemos);
+			await noteApi.delete(id);
+			const updatedNotes = notes.filter((note) => note.id !== id);
+			setNotes(updatedNotes);
 			setOpenDropdown(null);
-			navigate("/memo");
+			navigate("/note");
 		} catch (error) {
-			console.error("Failed to delete memo:", error);
+			console.error("Failed to delete note:", error);
 		}
 	};
 
-	const renderMemoItem = (item: any, isFavorite: boolean = false) => (
+	const renderNoteItem = (item: any, isFavorite: boolean = false) => (
 		<li key={item.id} className={isFavorite ? "pl-8" : "pl-8"}>
 			<div
 				className="flex items-center justify-between my-2 text-black dark:text-white relative"
-				onMouseEnter={() => setHoveredMemo(item.id)}
-				onMouseLeave={() => setHoveredMemo(null)}
+				onMouseEnter={() => setHoveredNote(item.id)}
+				onMouseLeave={() => setHoveredNote(null)}
 			>
-				<Link to={`/memo/${item.id}`} className="flex-grow">
+				<Link to={`/note/${item.id}`} className="flex-grow">
 					{item.icon} {item.title}
 				</Link>
-				{hoveredMemo === item.id && (
+				{hoveredNote === item.id && (
 					<button
 						onClick={(e) => {
 							e.preventDefault();
@@ -165,9 +165,9 @@ const Sidebar = () => {
 								</span>
 							</div>
 						</li>
-						{favoriteMemos
+						{favoriteNotes
 							.filter((item) => item.favorite)
-							.map((item) => renderMemoItem(item, true))}
+							.map((item) => renderNoteItem(item, true))}
 						<li className="mt-2">
 							<div className="flex items-center justify-between w-full p-4">
 								<span className="text-sm font-bold text-black dark:text-white ml-1">
@@ -175,22 +175,22 @@ const Sidebar = () => {
 								</span>
 								<button
 									className="text-gray-600 dark:text-gray-400"
-									onClick={addMemo}
+									onClick={addNote}
 								>
 									<FontAwesomeIcon icon={faPlusSquare} />
 								</button>
 							</div>
 						</li>
-						{sortedMemos.map((item) => renderMemoItem(item))}
+						{sortedNotes.map((item) => renderNoteItem(item))}
 					</ul>
 				</div>
 			</div>
 			{openDropdown && (
 				<DropdownMenu
-					memoId={openDropdown}
+					noteId={openDropdown}
 					position={dropdownPosition}
 					onClose={() => setOpenDropdown(null)}
-					onDelete={handleDeleteMemo}
+					onDelete={handleDeleteNote}
 				/>
 			)}
 		</>

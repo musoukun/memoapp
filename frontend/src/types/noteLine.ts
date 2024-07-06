@@ -1,7 +1,7 @@
-type MemoLine = {
+type NoteLine = {
 	id: string;
 	text: string;
 	isFocus: boolean;
 };
 
-export type { MemoLine };
+export type { NoteLine };

@@ -17,7 +17,7 @@ export const validate = (req: Request, res: Response, next: NextFunction) => {
 
 // ObjectIdが有効かどうか
 export const isObjectId = async (value: string): Promise<boolean> => {
-	const record = await prisma.memo.findUnique({
+	const record = await prisma.note.findUnique({
 		where: { id: value },
 	});
 	return !!record;
