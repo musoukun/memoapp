@@ -1,14 +1,24 @@
-export interface Card {
+export type Card = {
 	id: string;
 	title: string;
 	status?: string;
 	assignee?: string;
 	dueDate?: string;
 	notes?: string;
-}
+};
 
-export interface Column {
+export type Column = {
+	id: string;
+	ColumnTitle: string;
+	cards: Card[];
+};
+
+export type Kanban = {
 	id: string;
 	title: string;
-	cards: Card[];
-}
+	data: Column[];
+	createdAt: string;
+	updatedAt: string;
+	userId: string;
+	home: boolean;
+};

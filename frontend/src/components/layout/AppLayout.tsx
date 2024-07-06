@@ -23,7 +23,7 @@ const AppLayout = () => {
 			}
 		};
 		checkAuth();
-	}, [navigate]);
+	}, [navigate, setUser]);
 
 	return loading ? (
 		<div className="flex items-center justify-center h-full">

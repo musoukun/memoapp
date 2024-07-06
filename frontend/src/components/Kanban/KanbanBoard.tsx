@@ -1,52 +1,97 @@
-// KanbanBoard.tsx
-import { useState } from "react";
-import {
-	DndContext,
-	DragEndEvent,
-	UniqueIdentifier,
-	closestCorners,
-} from "@dnd-kit/core";
+import { useState, useEffect } from "react";
+import { DndContext, DragEndEvent, closestCorners } from "@dnd-kit/core";
 import { CardDetails } from "./CardDetail";
-import { Column as ColumnType, Card } from "../../types/kanban";
+import { Card, Kanban } from "../../types/kanban";
 import { Column } from "./Column";
+import kanbanApi from "../../api/kanbanApi";
+import { AxiosResponse } from "axios";
 
-export interface KanbanBoardProps {
-	initialColumns: ColumnType[];
-}
-
-export function KanbanBoard({ initialColumns }: KanbanBoardProps) {
-	const [columns, setColumns] = useState<ColumnType[]>(initialColumns);
+export function KanbanBoard() {
+	const [kanban, setKanban] = useState<Kanban | null>(null);
 	const [selectedCard, setSelectedCard] = useState<Card | null>(null);
 
-	const handleDragEnd = (event: DragEndEvent) => {
+	useEffect(() => {
+		fetchKanbanData();
+	}, []);
+
+	const fetchKanbanData = async () => {
+		try {
+			const response: AxiosResponse<Kanban | null> =
+				await kanbanApi.home();
+			if (response.data) {
+				setKanban(response.data);
+			}
+		} catch (error) {
+			console.error("Failed to fetch Kanban data", error);
+		}
+	};
+
+	const handleDragEnd = async (event: DragEndEvent) => {
 		const { active, over } = event;
-		if (!over) return;
+		if (!over || !kanban) return;
 
-		const activeColumnId = active.data.current?.columnId;
-		const overColumnId = over.id;
+		const activeCard = active.data.current as {
+			card: Card;
+			columnId: string;
+		};
+		const overColumnId = over.id as string;
 
-		if (activeColumnId !== overColumnId) {
-			setColumns((prevColumns) => {
-				const activeColumn = prevColumns.find(
-					(col) => col.id === activeColumnId
-				);
-				const overColumn = prevColumns.find(
-					(col) => col.id === overColumnId
-				);
+		if (activeCard.columnId !== overColumnId) {
+			setKanban((prevKanban) => {
+				if (!prevKanban) return null;
 
-				if (!activeColumn || !overColumn) return prevColumns;
+				const updatedColumns = prevKanban.data.map((column) => {
+					if (column.id === activeCard.columnId) {
+						return {
+							...column,
+							cards: column.cards.filter(
+								(card) => card.id !== activeCard.card.id
+							),
+						};
+					}
+					if (column.id === overColumnId) {
+						return {
+							...column,
+							cards: [...column.cards, activeCard.card],
+						};
+					}
+					return column;
+				});
 
-				const activeCardIndex = activeColumn.cards.findIndex(
-					(card: { id: UniqueIdentifier }) => card.id === active.id
-				);
-				const [movedCard] = activeColumn.cards.splice(
-					activeCardIndex,
-					1
-				);
-				overColumn.cards.push(movedCard);
-
-				return [...prevColumns];
+				const updatedKanban: Kanban = {
+					...prevKanban,
+					data: updatedColumns,
+				};
+				updateKanbanData(updatedKanban);
+				return updatedKanban;
 			});
+		}
+	};
+
+	const handleDeleteCard = async (cardId: string, columnId: string) => {
+		if (!kanban) return;
+
+		try {
+			await kanbanApi.delete(cardId);
+			setKanban((prevKanban) => {
+				if (!prevKanban) return null;
+
+				const updatedColumns = prevKanban.data.map((column) => {
+					if (column.id === columnId) {
+						return {
+							...column,
+							cards: column.cards.filter(
+								(card) => card.id !== cardId
+							),
+						};
+					}
+					return column;
+				});
+
+				return { ...prevKanban, data: updatedColumns };
+			});
+		} catch (error) {
+			console.error("Failed to delete card", error);
 		}
 	};
 
@@ -57,39 +102,82 @@ export function KanbanBoard({ initialColumns }: KanbanBoardProps) {
 	const handleClose = () => {
 		setSelectedCard(null);
 	};
+	const handleInputChange = async (field: keyof Card, value: string) => {
+		if (!kanban || !selectedCard) return;
 
-	const handleInputChange = (field: keyof Card, value: string) => {
-		setSelectedCard((prev: any) =>
-			prev ? { ...prev, [field]: value } : null
-		);
-		setColumns((prevColumns: any) => {
-			return prevColumns.map((col: any) => ({
-				...col,
-				cards: col.cards.map((card: { id: any }) =>
-					card.id === selectedCard?.id
+		setSelectedCard((prev) => (prev ? { ...prev, [field]: value } : null));
+		setKanban((prevKanban) => {
+			if (!prevKanban) return null;
+
+			const updatedColumns = prevKanban.data.map((column) => ({
+				...column,
+				cards: column.cards.map((card) =>
+					card.id === selectedCard.id
 						? { ...card, [field]: value }
 						: card
 				),
 			}));
+
+			const updatedKanban = { ...prevKanban, data: updatedColumns };
+			updateKanbanData(updatedKanban);
+			return updatedKanban;
 		});
 	};
 
+	const handleAddCard = async (columnId: string) => {
+		if (!kanban) return;
+
+		const newCard: Card = {
+			id: `card-${Date.now()}`,
+			title: "新しいカード",
+		};
+
+		setKanban((prevKanban) => {
+			if (!prevKanban) return null;
+
+			const updatedColumns = prevKanban.data.map((column) => {
+				if (column.id === columnId) {
+					return {
+						...column,
+						cards: [...column.cards, newCard],
+					};
+				}
+				return column;
+			});
+
+			const updatedKanban = { ...prevKanban, data: updatedColumns };
+			updateKanbanData(updatedKanban);
+			return updatedKanban;
+		});
+	};
+
+	const updateKanbanData = async (updatedKanban: Kanban) => {
+		try {
+			await kanbanApi.update(updatedKanban.id, updatedKanban);
+		} catch (error) {
+			console.error("Failed to update Kanban data", error);
+		}
+	};
+
+	if (!kanban) return <div>Loading...</div>;
+
 	return (
-		// 看板の縦幅に全体の高さを合わせたい
 		<div className="h-full my-5">
 			<div className="my-4 text-xl font-bold text-[#c9d1d9]">
-				かんばん
+				{kanban.title}
 			</div>
 			<DndContext
 				onDragEnd={handleDragEnd}
 				collisionDetection={closestCorners}
 			>
 				<div className="flex gap-4">
-					{columns.map((column) => (
+					{kanban.data.map((column) => (
 						<Column
 							key={column.id}
 							column={column}
 							onCardDoubleClick={handleDoubleClick}
+							onCardDelete={handleDeleteCard}
+							onAddCard={handleAddCard}
 						/>
 					))}
 				</div>
@@ -104,4 +192,5 @@ export function KanbanBoard({ initialColumns }: KanbanBoardProps) {
 		</div>
 	);
 }
+
 export default KanbanBoard;
