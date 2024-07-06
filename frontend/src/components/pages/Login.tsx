@@ -6,13 +6,15 @@ import LoadingButton from "../common/LoadingButton";
 const Login = () => {
 	const navigate = useNavigate();
 	const [loading, setLoading] = useState(false);
-	const [usernameErrText, setUsernameErrText] = useState("");
-	const [passwordErrText, setPasswordErrText] = useState("");
+	const [usernameErrText, setUsernameErrText] = useState<string>("");
+	const [passwordErrText, setPasswordErrText] = useState<string>("");
+	const [generalErrText, setGeneralErrText] = useState<string>("");
 
 	const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
 		e.preventDefault();
 		setUsernameErrText("");
 		setPasswordErrText("");
+		setGeneralErrText("");
 
 		const data = new FormData(e.currentTarget);
 		const username = data.get("username") as string;
@@ -40,28 +42,39 @@ const Login = () => {
 			});
 			if (res.status === 201) {
 				localStorage.setItem("token", res.data.token);
-				setLoading(false);
 				navigate("/");
 			}
 		} catch (err: any) {
+			// errorが配列かどうかをチェック
 			setLoading(false);
-			const errors = await Promise.resolve(err.data);
-			errors.forEach((e: any) => {
-				if (e.errors) {
+			if (err.data.errors && Array.isArray(err.data.errors)) {
+				const errors = err.data.errors;
+				errors.forEach((e: { path: string; msg: string }) => {
 					if (e.path === "username") {
 						setUsernameErrText(e.msg);
 					}
 					if (e.path === "password") {
 						setPasswordErrText(e.msg);
 					}
-				}
-			});
+				});
+			} else {
+				setGeneralErrText(
+					`"予期しないエラーが発生しました。もう一度お試しください。${err.data}"`
+				);
+			}
+		} finally {
+			setLoading(false);
 		}
 	};
 
 	return (
-		<div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md  bg-white dark:bg-gray-800 text-black dark:text-white">
-			<form className="space-y-6 " onSubmit={handleSubmit}>
+		<div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md bg-white dark:bg-gray-800 text-black dark:text-white">
+			{generalErrText && (
+				<div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+					{generalErrText}
+				</div>
+			)}
+			<form className="space-y-6" onSubmit={handleSubmit}>
 				<div>
 					<label
 						htmlFor="username"
@@ -80,7 +93,6 @@ const Login = () => {
 									? "border-red-300"
 									: "border-gray-300"
 							} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-							disabled={loading}
 						/>
 					</div>
 					{usernameErrText && (
@@ -108,7 +120,6 @@ const Login = () => {
 									? "border-red-300"
 									: "border-gray-300"
 							} rounded-md shadow-sm placeholder-gray-400 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm`}
-							disabled={loading}
 						/>
 					</div>
 					{passwordErrText && (

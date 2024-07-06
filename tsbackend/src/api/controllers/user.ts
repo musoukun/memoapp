@@ -3,6 +3,7 @@ import jsonwebtoken from "jsonwebtoken";
 import { Prisma, PrismaClient, User } from "@prisma/client";
 import { Request, Response } from "express";
 import env from "../../../env";
+// import User from "../../api/types/express/index.d.ts";
 
 const prisma = new PrismaClient();
 
@@ -44,29 +45,37 @@ export const register = async (req: Request, res: Response): Promise<void> => {
 export const login = async (req: Request, res: Response): Promise<void> => {
 	const username: string = req.body.username;
 	const password: string = req.body.password;
+	const errors: { path: string; msg: string }[] = [];
 
 	try {
 		const user: User | null = await prisma.user.findUnique({
 			where: { username: username },
 		});
 		if (!user) {
-			res.status(401).json({
-				message: "ユーザー名かパスワードが無効です。",
+			errors.push({
+				path: "username",
+				msg: "ユーザーが見つかりません。",
 			});
+		} else {
+			const decryptedPassword: string = CryptoJS.AES.decrypt(
+				user.passwordDigest!,
+				env.PASS!
+			).toString(CryptoJS.enc.Utf8);
+
+			if (decryptedPassword !== password) {
+				errors.push({
+					path: "password",
+					msg: "パスワードが無効です。",
+				});
+			}
+		}
+
+		if (errors.length > 0) {
+			res.status(401).json({ errors: errors });
 			return;
 		}
 
-		const decryptedPassword: string = CryptoJS.AES.decrypt(
-			user.passwordDigest!,
-			env.PASS!
-		).toString(CryptoJS.enc.Utf8);
-		if (decryptedPassword !== password) {
-			res.status(401).json({
-				message: "ユーザー名かパスワードが無効です。",
-			});
-			return;
-		}
-
+		// ユーザーが見つかった場合
 		const token: string = jsonwebtoken.sign({ id: user.id }, env.TOKEN!, {
 			expiresIn: "24h",
 		});
@@ -82,7 +91,7 @@ export const login = async (req: Request, res: Response): Promise<void> => {
 			console.error("Unexpected error:", err);
 			res.status(500).json({
 				message:
-					"envファイルまたは、envファイルを読み込んでいる箇所に誤りがあるかもしれません。",
+					"システムエラーが発生しました。管理者にお問い合わせください。:Login_enviroment_error",
 			});
 		}
 	}

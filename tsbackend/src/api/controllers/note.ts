@@ -1,18 +1,14 @@
 /* eslint-disable prefer-const */
 import { Note, PrismaClient } from "@prisma/client";
-const prisma = new PrismaClient();
 import { Request, Response } from "express";
-import { CustomRequest } from "../types/note";
-import { NotePositionUpdateBody } from "../types/note";
+
+const prisma = new PrismaClient();
 
 export const test = async (req: Request, res: Response) => {
 	res.send("noteAPI test");
 };
 
-export const create = async (
-	req: CustomRequest<{ position: number }>,
-	res: Response
-) => {
+export const create = async (req: Request, res: Response) => {
 	try {
 		const noteCount = await prisma.note.count();
 		const note = await prisma.note.create({
@@ -27,7 +23,7 @@ export const create = async (
 	}
 };
 
-export const getAll = async (req: CustomRequest<{}>, res: Response) => {
+export const getAll = async (req: Request, res: Response) => {
 	try {
 		const notes = await prisma.note.findMany({
 			where: { userId: req.user!.id },
@@ -39,11 +35,8 @@ export const getAll = async (req: CustomRequest<{}>, res: Response) => {
 	}
 };
 
-export const updatePosition = async (
-	req: CustomRequest<NotePositionUpdateBody>,
-	res: Response
-) => {
-	const { notes } = req.body as NotePositionUpdateBody;
+export const updatePosition = async (req: Request, res: Response) => {
+	const { notes } = req.body.notes;
 	try {
 		await Promise.all(
 			notes.reverse().map((note, index) =>
@@ -59,7 +52,7 @@ export const updatePosition = async (
 	}
 };
 
-export const getOne = async (req: CustomRequest<{}>, res: Response) => {
+export const getOne = async (req: Request, res: Response) => {
 	const noteId = req.params.noteId!;
 	try {
 		const note = await prisma.note.findUnique({
@@ -72,7 +65,7 @@ export const getOne = async (req: CustomRequest<{}>, res: Response) => {
 	}
 };
 
-export const update = async (req: CustomRequest<Note>, res: Response) => {
+export const update = async (req: Request, res: Response) => {
 	const noteId = req.params.noteId!;
 	let { title, description, favorite, icon } = req.body as Note;
 
@@ -109,7 +102,7 @@ export const update = async (req: CustomRequest<Note>, res: Response) => {
 	}
 };
 
-export const getFavorites = async (req: CustomRequest<{}>, res: Response) => {
+export const getFavorites = async (req: Request, res: Response) => {
 	try {
 		const favorites = await prisma.note.findMany({
 			where: { userId: req.user!.id, favorite: true },
@@ -121,7 +114,7 @@ export const getFavorites = async (req: CustomRequest<{}>, res: Response) => {
 	}
 };
 
-export const deleteNote = async (req: CustomRequest<{}>, res: Response) => {
+export const deleteNote = async (req: Request, res: Response) => {
 	const noteId = req.params.noteId!;
 	try {
 		await prisma.note.delete({
@@ -134,7 +127,7 @@ export const deleteNote = async (req: CustomRequest<{}>, res: Response) => {
 };
 
 // メモの最近のアクセス履歴を取得
-export const getRecentNotes = async (req: CustomRequest<{}>, res: Response) => {
+export const getRecentNotes = async (req: Request, res: Response) => {
 	const userId = req.user.id!;
 
 	try {

@@ -1,10 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import React, {
 	useEffect,
-	useNote,
 	useState,
 	useCallback,
 	useRef,
+	useMemo,
 } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { BlockNoteView } from "@blocknote/react";
@@ -106,7 +106,7 @@ const Note: React.FC = () => {
 
 	// BlockNoteエディタの初期化
 	// initialContentが空またはundefinedの場合はeditorインスタンスを生成する
-	const editor = useNote(() => {
+	const editor = useMemo(() => {
 		if (!initialContent === undefined) {
 			// メモの作成に失敗していることをエラー通知
 			console.error(

@@ -19,6 +19,19 @@ model User {
   passwordDigest String?
   createdAt      DateTime @default(now())
   updatedAt      DateTime @updatedAt
+  kanbans        Kanban[] // Add this line to create the opposite relation field
+}
+
+model Kanban {
+  id        String   @id @default(uuid())
+  userId    String
+  title     String   @default("New Kanban")
+  data      Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@index([userId], name: "index_kanbans_on_user_id")
 }
 
 model Note {
@@ -40,6 +53,7 @@ model Note {
   @@index([userId], name: "index_memos_on_user_id")
   @@index([lastAccessedAt], name: "index_memos_on_last_accessed_at")
 }
+
 model Section {
   id         String   @id @default(uuid())
   memoId     String

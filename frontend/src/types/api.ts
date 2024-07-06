@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // メモのデータ構造を表す型
 type Note = {
-	[x: string]: any;
 	id?: string; // 新規作成時にはidがないため、オプショナルとする
 	title: string;
 	description: string;
@@ -29,6 +28,12 @@ type UpdateNoteResponse = {
 	data: Note; // 更新されたメモのデータ
 };
 
+type updateSidebarInfo = {
+	title: string;
+	icon: string;
+	favorite: boolean;
+	delete: boolean;
+};
 // メモ削除APIのレスポンスの型（成功時のステータスコードやメッセージなどに応じて定義）
 type DeleteNoteResponse = {
 	message: string; // 例: 'メモが削除されました'
@@ -47,10 +52,6 @@ type LoginParams = {
 
 type AuthResponse = {
 	token: string;
-};
-
-type ErrorResponse = {
-	message: string;
 };
 
 type UpdateNoteBody = {
@@ -81,5 +82,5 @@ export type {
 	RegisterParams,
 	LoginParams,
 	AuthResponse,
-	ErrorResponse,
+	updateSidebarInfo,
 };

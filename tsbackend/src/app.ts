@@ -5,6 +5,7 @@ import logger from "morgan";
 import cors from "cors";
 import routes from "./api/routes";
 import env from "../env";
+// import "../types/express/index.d.ts";
 
 const app: Express = express();
 const PORT = env.PORT;

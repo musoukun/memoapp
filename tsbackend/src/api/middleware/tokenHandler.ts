@@ -35,26 +35,34 @@ const tokenDecode = (
 // トークン認証関数(ミドルウェアとして利用)
 export const verifyToken = async (
 	req: Request | any,
-	res: Response | any,
+	res: Response,
 	next: NextFunction
 ) => {
 	const tokenDecoded = tokenDecode(req);
-	console.log(tokenDecoded);
-	// デコード済みのトークンがあれば(=以前ログインor新規作成されたユーザーであれば)
-	if (tokenDecoded) {
-		// そのトークンと一致するユーザーを探してくる。
-		console.log((tokenDecoded as jsonwebtoken.JwtPayload).id);
+
+	if (!tokenDecoded) {
+		return res.status(401).json({ message: "権限がありません" });
+	}
+
+	try {
 		const user = await prisma.user.findUnique({
 			where: {
 				id: (tokenDecoded as jsonwebtoken.JwtPayload).id as string,
 			},
 		});
 
-		if (!user) return res.status(401).json("権限がありません");
+		if (!user) {
+			return res
+				.status(401)
+				.json({ message: "ユーザーが見つかりません" });
+		}
 
 		req.user = user;
 		next();
-	} else {
-		res.status(401).json("権限がありません");
+	} catch (err) {
+		console.error("VerifyTokenError", err);
+		return res
+			.status(500)
+			.json({ message: "サーバーエラーが発生しました" });
 	}
 };

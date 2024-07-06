@@ -1,6 +1,4 @@
-import exp from "constants";
 import { Note } from "@prisma/client";
-import { Prisma } from "@prisma/client";
 
 type NotePositionUpdateBody = {
 	notes: { id: string }[];

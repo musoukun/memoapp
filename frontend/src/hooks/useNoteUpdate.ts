@@ -3,6 +3,7 @@ import { useSetRecoilState } from "recoil";
 import { notesStateAtom } from "../atoms/noteAtoms";
 import noteApi from "../api/noteApi";
 import { Note } from "../types/api";
+import { updateSidebarInfo } from "../types/api";
 
 export const useNoteUpdate = () => {
 	const setNotes = useSetRecoilState(notesStateAtom);
@@ -20,13 +21,22 @@ export const useNoteUpdate = () => {
 
 	const updateSidebarInfo = (
 		id: string,
-		updates: Partial<Pick<Note, "title" | "favorite" | "icon" | "delete">>
+		updates: Partial<updateSidebarInfo>
 	) => {
-		setNotes((prevNotes) =>
-			prevNotes.map((note) =>
-				note.id === id ? { ...note, ...updates } : note
-			)
-		);
+		setNotes((prev) => {
+			if (!prev) return prev;
+
+			return prev.map((note) => {
+				if (note.id === id) {
+					return {
+						...note,
+						...updates,
+						favorite: Boolean(updates.favorite),
+					};
+				}
+				return note;
+			});
+		});
 	};
 
 	return { updateNote, updateSidebarInfo };

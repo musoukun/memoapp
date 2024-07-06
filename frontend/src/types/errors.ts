@@ -46,4 +46,9 @@ export type AxiosErrorResponseData = {
 	};
 	request: object;
 };
+export type ErrorResponse = {
+	path: string;
+	msg: string;
+};
+
 export type { ValidationErrorResponse, ValidationError };
