@@ -26,6 +26,23 @@ export function KanbanBoard() {
 		}
 	};
 
+	const updateKanban = async (updatedKanban: Kanban) => {
+		setKanban(updatedKanban);
+		try {
+			await kanbanApi.update(updatedKanban.id, updatedKanban);
+		} catch (error) {
+			console.error("Failed to update Kanban data", error);
+		}
+	};
+
+	const handleDoubleClick = (card: Card) => {
+		setSelectedCard(card);
+	};
+
+	const handleClose = () => {
+		setSelectedCard(null);
+	};
+
 	const handleDragEnd = async (event: DragEndEvent) => {
 		const { active, over } = event;
 		if (!over || !kanban) return;
@@ -62,46 +79,12 @@ export function KanbanBoard() {
 					...prevKanban,
 					data: updatedColumns,
 				};
-				updateKanbanData(updatedKanban);
+				updateKanban(updatedKanban);
 				return updatedKanban;
 			});
 		}
 	};
 
-	const handleDeleteCard = async (cardId: string, columnId: string) => {
-		if (!kanban) return;
-
-		try {
-			await kanbanApi.delete(cardId);
-			setKanban((prevKanban) => {
-				if (!prevKanban) return null;
-
-				const updatedColumns = prevKanban.data.map((column) => {
-					if (column.id === columnId) {
-						return {
-							...column,
-							cards: column.cards.filter(
-								(card) => card.id !== cardId
-							),
-						};
-					}
-					return column;
-				});
-
-				return { ...prevKanban, data: updatedColumns };
-			});
-		} catch (error) {
-			console.error("Failed to delete card", error);
-		}
-	};
-
-	const handleDoubleClick = (card: Card) => {
-		setSelectedCard(card);
-	};
-
-	const handleClose = () => {
-		setSelectedCard(null);
-	};
 	const handleInputChange = async (field: keyof Card, value: string) => {
 		if (!kanban || !selectedCard) return;
 
@@ -119,7 +102,7 @@ export function KanbanBoard() {
 			}));
 
 			const updatedKanban = { ...prevKanban, data: updatedColumns };
-			updateKanbanData(updatedKanban);
+			updateKanban(updatedKanban);
 			return updatedKanban;
 		});
 	};
@@ -132,10 +115,9 @@ export function KanbanBoard() {
 			title: "新しいカード",
 		};
 
-		setKanban((prevKanban) => {
-			if (!prevKanban) return null;
-
-			const updatedColumns = prevKanban.data.map((column) => {
+		const updatedKanban: Kanban = {
+			...kanban,
+			data: kanban.data.map((column) => {
 				if (column.id === columnId) {
 					return {
 						...column,
@@ -143,12 +125,10 @@ export function KanbanBoard() {
 					};
 				}
 				return column;
-			});
+			}),
+		};
 
-			const updatedKanban = { ...prevKanban, data: updatedColumns };
-			updateKanbanData(updatedKanban);
-			return updatedKanban;
-		});
+		updateKanban(updatedKanban);
 	};
 
 	const handleAddColumn = async () => {
@@ -160,24 +140,12 @@ export function KanbanBoard() {
 			cards: [],
 		};
 
-		setKanban((prevKanban) => {
-			if (!prevKanban) return null;
+		const updatedKanban: Kanban = {
+			...kanban,
+			data: [...kanban.data, newColumn],
+		};
 
-			const updatedKanban = {
-				...prevKanban,
-				data: [...prevKanban.data, newColumn],
-			};
-			updateKanbanData(updatedKanban);
-			return updatedKanban;
-		});
-	};
-
-	const updateKanbanData = async (updatedKanban: Kanban) => {
-		try {
-			await kanbanApi.update(updatedKanban.id, updatedKanban);
-		} catch (error) {
-			console.error("Failed to update Kanban data", error);
-		}
+		updateKanban(updatedKanban);
 	};
 
 	if (!kanban) return <div>Loading...</div>;
@@ -197,8 +165,9 @@ export function KanbanBoard() {
 							key={column.id}
 							column={column}
 							onCardDoubleClick={handleDoubleClick}
-							onCardDelete={handleDeleteCard}
 							onAddCard={handleAddCard}
+							updateKanban={updateKanban}
+							kanban={kanban}
 						/>
 					))}
 					<button

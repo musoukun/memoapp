@@ -17,7 +17,7 @@ export const create = async (req: Request, res: Response) => {
 		const kanban = await prisma.kanban.create({
 			data: {
 				userId: req.user.id,
-				data: initialKanban as ColumnArray,
+				data: initialKanban as Kanban["data"],
 			},
 		});
 		console.log("kanban created:", kanban);
