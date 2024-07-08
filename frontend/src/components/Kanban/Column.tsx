@@ -1,8 +1,11 @@
 import React, { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
+import {
+	SortableContext,
+	verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
 import { KanbanColumn, KanbanCard } from "../../types/kanban";
 import { Card } from "./Card";
-import { KanbanDropdownMenu } from "./KanbanDropdownMenu";
 import { BsThreeDots } from "react-icons/bs";
 
 interface ColumnProps {
@@ -12,11 +15,7 @@ interface ColumnProps {
 	onDeleteCard: (columnId: string, cardId: string) => void;
 	onDeleteColumn: (columnId: string) => void;
 	onTitleEdit: (columnId: string, newTitle: string) => void;
-	onCardTitleUpdate: (
-		columnId: string,
-		cardId: string,
-		newTitle: string
-	) => void;
+	onCardTitleUpdate: (cardId: string, newTitle: string) => void; // 新しく追加
 }
 
 export const Column: React.FC<ColumnProps> = ({
@@ -26,7 +25,7 @@ export const Column: React.FC<ColumnProps> = ({
 	onDeleteCard,
 	onDeleteColumn,
 	onTitleEdit,
-	onCardTitleUpdate,
+	onCardTitleUpdate, // 新しく追加
 }) => {
 	const { setNodeRef } = useDroppable({ id: column.id });
 	const [showDropdown, setShowDropdown] = useState(false);
@@ -44,7 +43,7 @@ export const Column: React.FC<ColumnProps> = ({
 	const handleTitleBlur = () => {
 		setIsEditingTitle(false);
 		if (editedTitle.trim() !== column.title) {
-			onTitleEdit(column.id, editedTitle.trim());
+			onTitleEdit(column.id, editedTitle.trim()); // 修正
 		}
 	};
 
@@ -55,11 +54,8 @@ export const Column: React.FC<ColumnProps> = ({
 	};
 
 	return (
-		<div
-			ref={setNodeRef}
-			className="bg-gray-100 rounded-lg p-4 w-80 flex flex-col"
-		>
-			<div className="flex justify-between items-center mb-4">
+		<div ref={setNodeRef} className="bg-[#161b22] rounded-xl w-[300px] p-4">
+			<div className="flex justify-between items-center mb-2">
 				{isEditingTitle ? (
 					<input
 						type="text"
@@ -67,7 +63,7 @@ export const Column: React.FC<ColumnProps> = ({
 						onChange={handleTitleChange}
 						onBlur={handleTitleBlur}
 						onKeyDown={handleTitleKeyDown}
-						className="font-bold text-lg"
+						className="font-bold text-lg bg-transparent border-b border-gray-300 focus:outline-none focus:border-blue-500"
 						autoFocus
 					/>
 				) : (
@@ -85,32 +81,46 @@ export const Column: React.FC<ColumnProps> = ({
 					>
 						<BsThreeDots size={16} />
 					</button>
-					<span className="text-gray-500">{column.cards.length}</span>
+					{/* column.cards が存在するかどうかをチェックし、存在しない場合はデフォルト値を使用する */}
+					<span className="text-gray-500">
+						{column.cards ? column.cards.length : 0}
+					</span>
 				</div>
 			</div>
 			{showDropdown && (
-				<KanbanDropdownMenu
-					show={showDropdown}
-					onClose={() => setShowDropdown(false)}
-					onDelete={() => onDeleteColumn(column.id)}
-				/>
+				<div className="absolute top-12 right-4 bg-white shadow-lg rounded-lg p-2 z-10">
+					<button
+						className="text-red-500 hover:text-red-700"
+						onClick={() => onDeleteColumn(column.id)}
+					>
+						Delete Column
+					</button>
+				</div>
 			)}
-			<div className="flex-grow overflow-y-auto">
-				{column.cards.map((card) => (
-					<Card
-						key={card.id}
-						card={card}
-						onClick={() => onCardClick(card)}
-						onDelete={() => onDeleteCard(column.id, card.id)}
-						onTitleUpdate={(cardId, newTitle) =>
-							onCardTitleUpdate(column.id, cardId, newTitle)
-						}
-					/>
-				))}
-			</div>
+			<SortableContext
+				items={column.cards ? column.cards.map((card) => card.id) : []}
+				strategy={verticalListSortingStrategy}
+			>
+				<div className="flex-grow overflow-y-auto">
+					{column.cards &&
+						column.cards.map((card) => (
+							<Card
+								key={card.id}
+								card={card}
+								onClick={() => onCardClick(card)}
+								onDelete={() =>
+									onDeleteCard(column.id, card.id)
+								}
+								onTitleUpdate={(cardId, newTitle) =>
+									onCardTitleUpdate(card.id, newTitle)
+								} // 修正
+							/>
+						))}
+				</div>
+			</SortableContext>
 			<button
 				onClick={() => onAddCard(column.id)}
-				className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg w-full"
+				className="text-[#8b949e]"
 			>
 				+ Add Card
 			</button>

@@ -21,10 +21,17 @@ const initialKanbanStructure = {
 
 export const create = async (req: Request, res: Response) => {
 	try {
+		// homeエンドポイントからのリクエストかどうかを判定
+		const isHome = req.url === "/home";
+		let home = false;
+		if (isHome) {
+			home = true;
+		}
 		const kanban = await prisma.kanban.create({
 			data: {
 				userId: req.user.id,
 				title: initialKanbanStructure.title,
+				home: home,
 				columns: {
 					create: initialKanbanStructure.columns.map((column) => ({
 						title: column.title,
@@ -92,6 +99,7 @@ export const home = async (req: Request, res: Response) => {
 		});
 		if (!kanban) {
 			create(req, res);
+			return;
 		}
 		return res.json(kanban);
 	} catch (error) {

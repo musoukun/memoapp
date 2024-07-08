@@ -66,29 +66,24 @@ export const useKanbanUpdate = () => {
 				...columnData,
 			};
 
-			// 即時のUI更新
-			setKanban((prevKanban: any) => {
-				if (!prevKanban) return null;
-				return {
-					...prevKanban,
-					columns: [...prevKanban.columns, newColumn],
-				};
-			});
+			// // 即時のUI更新
+			// setKanban((prevKanban: any) => {
+			// 	if (!prevKanban) return null;
+			// 	return {
+			// 		...prevKanban,
+			// 		columns: [...prevKanban.columns, newColumn],
+			// 	};
+			// });
 
 			try {
-				const response = await kanbanApi.addColumn(
-					kanban.id,
-					newColumn
-				);
-				// バックエンドの応答を反映
-				setKanban((prevKanban: any) => {
-					if (!prevKanban) return null;
-					return {
-						...prevKanban,
-						columns: prevKanban.columns.map((col: KanbanColumn) =>
-							col.id === tempId ? response.data : col
-						),
-					};
+				await kanbanApi.addColumn(kanban.id, newColumn).then((res) => {
+					setKanban((prevKanban: any) => {
+						if (!prevKanban) return null;
+						return {
+							...prevKanban,
+							columns: [...prevKanban.columns, res.data],
+						};
+					});
 				});
 			} catch (error) {
 				console.error("Failed to add column:", error);

@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
 import { KanbanCard } from "../../types/kanban";
 import { BsThreeDots } from "react-icons/bs";
+import { KanbanDropdownMenu } from "./KanbanDropdownMenu";
 
 interface CardProps {
 	card: KanbanCard;
@@ -57,8 +58,8 @@ export const Card: React.FC<CardProps> = ({
 			style={style}
 			{...attributes}
 			{...listeners}
-			className="bg-white p-4 mb-2 rounded-lg shadow cursor-move relative group"
-			onClick={onClick}
+			className="bg-[#0d1117] text-[#c9d1d9] p-2 mb-2 rounded-lg cursor-pointer"
+			onDoubleClick={onClick}
 		>
 			{isEditingTitle ? (
 				<input
@@ -67,12 +68,12 @@ export const Card: React.FC<CardProps> = ({
 					onChange={handleTitleChange}
 					onBlur={handleTitleBlur}
 					onKeyDown={handleTitleKeyDown}
-					className="w-full font-semibold"
+					className="w-full "
 					autoFocus
 				/>
 			) : (
 				<h3
-					className="font-semibold mb-2 cursor-pointer"
+					className="text-lg	 text-[#c9d1d9]"
 					onDoubleClick={handleTitleDoubleClick}
 				>
 					{card.title}
@@ -88,17 +89,11 @@ export const Card: React.FC<CardProps> = ({
 				<BsThreeDots size={16} />
 			</button>
 			{showMenu && (
-				<div className="absolute top-8 right-2 bg-white shadow-lg rounded-lg p-2 z-10">
-					<button
-						className="text-red-500 hover:text-red-700"
-						onClick={(e) => {
-							e.stopPropagation();
-							onDelete();
-						}}
-					>
-						Delete
-					</button>
-				</div>
+				<KanbanDropdownMenu
+					show={showMenu}
+					onClose={() => setShowMenu(false)}
+					onDelete={onDelete}
+				/>
 			)}
 		</div>
 	);

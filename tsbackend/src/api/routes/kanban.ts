@@ -10,7 +10,7 @@ router.use(verifyToken);
 
 router.post("/", kanbanController.create);
 router.get("/", kanbanController.getAll);
-router.get("/home", kanbanController.getOne);
+router.get("/home", kanbanController.home);
 
 router.get(
 	"/:kanbanId",

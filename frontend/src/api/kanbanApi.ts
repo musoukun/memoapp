@@ -11,7 +11,7 @@ const kanbanApi = {
 	delete: (id: string) => axiosClient.delete(`kanban/${id}`),
 
 	addColumn: (kanbanId: string, data: Partial<KanbanColumn>) =>
-		axiosClient.post<KanbanColumn>(`${kanbanId}/column`, data),
+		axiosClient.post<KanbanColumn>(`kanban/${kanbanId}/column`, data),
 
 	updateColumn: (
 		kanbanId: string,
