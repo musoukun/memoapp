@@ -317,8 +317,10 @@ export const moveCard = async (req: Request, res: Response) => {
 	try {
 		const { kanbanId, cardId } = req.params;
 		const { fromColumnId, toColumnId } = req.body;
+		const newIndex = req.body.newIndex;
 		const userId = req.user.id;
 
+		// 純粋にtoColumnIdと、newIndexを受け取って更新する処理に修正
 		const kanban = await prisma.kanban.findFirst({
 			where: { id: kanbanId, userId },
 			include: {
@@ -344,17 +346,36 @@ export const moveCard = async (req: Request, res: Response) => {
 			return res.status(404).json({ error: "Column not found" });
 		}
 
-		const card = fromColumn.cards.find((c) => c.id === cardId);
+		const card = fromColumn.cards.find((card) => card.id === cardId);
 		if (!card) {
 			return res.status(404).json({ error: "Card not found" });
 		}
 
-		const updatedCard = await prisma.kanbanCard.update({
-			where: { id: cardId },
-			data: { columnId: toColumnId },
+		// カードを移動
+		const updatedColumns = kanban.columns.map((column) => {
+			// 移動元のカードを削除
+			if (column.id === fromColumnId) {
+				const updatedCards = column.cards.filter(
+					(card) => card.id !== cardId
+				);
+				return { ...column, cards: updatedCards };
+			}
+			// 移動先のカードを追加
+			if (column.id === toColumnId) {
+				const updatedCards = [...column.cards];
+				updatedCards.splice(newIndex, 0, card);
+				return { ...column, cards: updatedCards };
+			}
+			return column;
 		});
 
-		return res.json(updatedCard);
+		// カードの順番を更新
+		await prisma.kanbanCard.update({
+			where: { id: cardId },
+			data: { columnId: toColumnId, order: newIndex },
+		});
+
+		return res.json(updatedColumns);
 	} catch (error) {
 		console.error("Failed to move card:", error);
 		return res.status(500).json({ error: "Failed to move card" });

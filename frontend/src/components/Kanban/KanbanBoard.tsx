@@ -34,7 +34,8 @@ export const KanbanBoard: React.FC = () => {
 
 	const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null);
 	const [editingTitle, setEditingTitle] = useState<string | null>(null);
-	const setActiveCard = useState<KanbanCard | null>(null)[1];
+	const [activeCard, setActiveCard] = useState<KanbanCard>();
+	const [activeColumn, setActiveColumn] = useState<KanbanColumn>();
 	const setKanban = useSetRecoilState(kanbanState);
 
 	const sensors = useSensors(
@@ -72,12 +73,12 @@ export const KanbanBoard: React.FC = () => {
 
 	const handleDragStart = (event: DragStartEvent) => {
 		const { active } = event;
-		const activeColumn = findColumnByCardId(active.id as string);
+		setActiveColumn(findColumnByCardId(active.id as string));
 		if (activeColumn) {
 			const activeCard = activeColumn.cards.find(
 				(card) => card.id === active.id
 			);
-			setActiveCard(activeCard || null);
+			setActiveCard(activeCard);
 		}
 	};
 
@@ -136,47 +137,76 @@ export const KanbanBoard: React.FC = () => {
 
 	const handleDragEnd = useCallback(
 		(event: DragEndEvent) => {
-			const { active, over } = event;
-			setActiveCard(null);
-			if (!over || !kanban) return;
+			const { over } = event;
 
-			const activeColumn = findColumnByCardId(active.id as string);
-			const overColumn =
-				findColumnByCardId(over.id as string) ||
-				kanban.columns.find((col) => col.id === over.id);
+			if (!over || !kanban || !activeCard) return;
+
+			const activeCardId = activeCard.id as string;
+			const overCardId = over.id as string;
+
+			// アクティブなカードを含む列を見つける
+			// const activeColumn = kanban.columns.find((col) =>
+			// 	col.cards.some((card) => card.id === activeCardId)
+			// );
+
+			// ドロップ先の列を見つける（over.id が列IDの場合とカードIDの場合を考慮）
+			const overColumn = kanban.columns.find(
+				(col) =>
+					col.id === overCardId ||
+					col.cards.some((card) => card.id === overCardId)
+			);
 
 			if (!activeColumn || !overColumn) return;
 
-			const activeIndex = activeColumn.cards.findIndex(
-				(card) => card.id === active.id
+			const activeCardIndex = activeColumn.cards.findIndex(
+				(card) => card.id === activeCardId
 			);
-			const overIndex = overColumn.cards.findIndex(
-				(card) => card.id === over.id
+			const overCardIndex = overColumn.cards.findIndex(
+				(card) => card.id === overCardId
 			);
 
-			if (activeColumn !== overColumn) {
+			if (activeColumn.id !== overColumn.id) {
+				// 異なる列間での移動
 				const newIndex =
-					over.id === overColumn.id
+					overCardIndex === -1
 						? overColumn.cards.length
-						: overIndex;
+						: overCardIndex;
 				moveCard(
-					active.id as string,
-					activeColumn.cards[activeIndex],
+					activeCardId,
+					activeColumn.cards[activeCardIndex],
 					activeColumn.id,
 					overColumn.id,
 					newIndex
 				);
-			} else if (activeIndex !== overIndex) {
+			} else if (
+				activeCardIndex !== overCardIndex &&
+				overCardIndex !== -1
+			) {
+				// 同じ列内での移動
 				const newCards = arrayMove(
 					activeColumn.cards,
-					activeIndex,
-					overIndex
+					activeCardIndex,
+					overCardIndex
 				);
-				console.log(newCards);
-				updateColumnTitle(activeColumn.id, activeColumn.title);
+				setKanban((prevKanban) => ({
+					...prevKanban,
+					columns: prevKanban.columns.map((col) =>
+						col.id === activeColumn.id
+							? { ...col, cards: newCards }
+							: col
+					),
+				}));
+				// バックエンドに変更を反映
+				moveCard(
+					activeCardId,
+					activeColumn.cards[activeCardIndex],
+					activeColumn.id,
+					activeColumn.id,
+					overCardIndex
+				);
 			}
 		},
-		[kanban, moveCard, updateColumnTitle, findColumnByCardId]
+		[kanban, moveCard, setKanban]
 	);
 
 	const handleCardClick = (card: KanbanCard) => {
