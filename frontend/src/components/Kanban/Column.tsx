@@ -1,95 +1,119 @@
-import React, { useState, useCallback } from "react";
+import React, { useState } from "react";
 import { useDroppable } from "@dnd-kit/core";
+import { KanbanColumn, KanbanCard } from "../../types/kanban";
 import { Card } from "./Card";
-import {
-	Card as CardType,
-	Column as ColumnType,
-	Kanban,
-} from "../../types/kanban";
+import { KanbanDropdownMenu } from "./KanbanDropdownMenu";
 import { BsThreeDots } from "react-icons/bs";
-import { FaTrash } from "react-icons/fa";
 
 interface ColumnProps {
-	column: ColumnType;
-	onCardDoubleClick: (card: CardType) => void;
+	column: KanbanColumn;
+	onCardClick: (card: KanbanCard) => void;
 	onAddCard: (columnId: string) => void;
-	updateKanban: (updatedKanban: Kanban) => void;
-	kanban: Kanban;
+	onDeleteCard: (columnId: string, cardId: string) => void;
+	onDeleteColumn: (columnId: string) => void;
+	onTitleEdit: (columnId: string, newTitle: string) => void;
+	onCardTitleUpdate: (
+		columnId: string,
+		cardId: string,
+		newTitle: string
+	) => void;
 }
 
-export function Column({
+export const Column: React.FC<ColumnProps> = ({
 	column,
-	onCardDoubleClick,
+	onCardClick,
 	onAddCard,
-	updateKanban,
-	kanban,
-}: ColumnProps) {
+	onDeleteCard,
+	onDeleteColumn,
+	onTitleEdit,
+	onCardTitleUpdate,
+}) => {
+	const { setNodeRef } = useDroppable({ id: column.id });
 	const [showDropdown, setShowDropdown] = useState(false);
-	const { setNodeRef } = useDroppable({
-		id: column.id,
-	});
+	const [isEditingTitle, setIsEditingTitle] = useState(false);
+	const [editedTitle, setEditedTitle] = useState(column.title);
 
-	const handleDeleteColumn = useCallback(() => {
-		const updatedKanban: Kanban = {
-			...kanban,
-			data: kanban.data.filter((col) => col.id !== column.id),
-		};
-		updateKanban(updatedKanban);
-	}, [kanban, column.id, updateKanban]);
+	const handleTitleDoubleClick = () => {
+		setIsEditingTitle(true);
+	};
 
-	const toggleDropdown = useCallback((e: React.MouseEvent) => {
-		e.stopPropagation();
-		setShowDropdown((prev) => !prev);
-	}, []);
+	const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setEditedTitle(e.target.value);
+	};
+
+	const handleTitleBlur = () => {
+		setIsEditingTitle(false);
+		if (editedTitle.trim() !== column.title) {
+			onTitleEdit(column.id, editedTitle.trim());
+		}
+	};
+
+	const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter") {
+			handleTitleBlur();
+		}
+	};
 
 	return (
 		<div
 			ref={setNodeRef}
-			className="dark:bg-[#161b22] rounded-xl w-[300px] p-4 relative"
+			className="bg-gray-100 rounded-lg p-4 w-80 flex flex-col"
 		>
-			<div className="flex justify-between items-center mb-2">
-				<span className="text-[#c9d1d9]">{column.ColumnTitle}</span>
+			<div className="flex justify-between items-center mb-4">
+				{isEditingTitle ? (
+					<input
+						type="text"
+						value={editedTitle}
+						onChange={handleTitleChange}
+						onBlur={handleTitleBlur}
+						onKeyDown={handleTitleKeyDown}
+						className="font-bold text-lg"
+						autoFocus
+					/>
+				) : (
+					<h2
+						className="font-bold text-lg cursor-pointer"
+						onDoubleClick={handleTitleDoubleClick}
+					>
+						{column.title}
+					</h2>
+				)}
 				<div className="flex items-center">
-					<div className="relative">
-						<button
-							onClick={toggleDropdown}
-							className="text-[#8b949e] hover:text-[#c9d1d9] mr-2"
-							aria-label="列メニューを開く"
-						>
-							<BsThreeDots size={16} />
-						</button>
-						{showDropdown && (
-							<div className="absolute top-full right-0 mt-1 w-[150px] bg-[#161b22] border border-[#30363d] rounded shadow-lg z-20">
-								<button
-									onClick={handleDeleteColumn}
-									className="w-full text-left px-4 py-2 hover:bg-[#21262d] flex items-center text-[#c9d1d9]"
-								>
-									<FaTrash className="mr-2" /> 削除
-								</button>
-							</div>
-						)}
-					</div>
-					<span className="text-[#8b949e]">
-						{column.cards.length}
-					</span>
+					<button
+						onClick={() => setShowDropdown(!showDropdown)}
+						className="text-gray-500 hover:text-gray-700 mr-2"
+					>
+						<BsThreeDots size={16} />
+					</button>
+					<span className="text-gray-500">{column.cards.length}</span>
 				</div>
 			</div>
-			{column.cards.map((card) => (
-				<Card
-					key={card.id}
-					card={card}
-					columnId={column.id}
-					onDoubleClick={() => onCardDoubleClick(card)}
-					updateKanban={updateKanban}
-					kanban={kanban}
+			{showDropdown && (
+				<KanbanDropdownMenu
+					show={showDropdown}
+					onClose={() => setShowDropdown(false)}
+					onDelete={() => onDeleteColumn(column.id)}
 				/>
-			))}
+			)}
+			<div className="flex-grow overflow-y-auto">
+				{column.cards.map((card) => (
+					<Card
+						key={card.id}
+						card={card}
+						onClick={() => onCardClick(card)}
+						onDelete={() => onDeleteCard(column.id, card.id)}
+						onTitleUpdate={(cardId, newTitle) =>
+							onCardTitleUpdate(column.id, cardId, newTitle)
+						}
+					/>
+				))}
+			</div>
 			<button
 				onClick={() => onAddCard(column.id)}
-				className="text-[#8b949e] hover:text-[#c9d1d9] w-full mt-2 p-2 bg-[#21262d] rounded"
+				className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg w-full"
 			>
-				+ 新規
+				+ Add Card
 			</button>
 		</div>
 	);
-}
+};

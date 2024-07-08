@@ -1,33 +1,27 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState } from "react";
 import { useDraggable } from "@dnd-kit/core";
-import { Card as CardType, Kanban } from "../../types/kanban";
+import { KanbanCard } from "../../types/kanban";
 import { BsThreeDots } from "react-icons/bs";
-import { FaTrash } from "react-icons/fa";
 
 interface CardProps {
-	card: CardType;
-	columnId: string;
-	onDoubleClick: () => void;
-	updateKanban: (updatedKanban: Kanban) => void;
-	kanban: Kanban;
+	card: KanbanCard;
+	onClick: () => void;
+	onDelete: () => void;
+	onTitleUpdate: (cardId: string, newTitle: string) => void;
 }
 
-export function Card({
+export const Card: React.FC<CardProps> = ({
 	card,
-	columnId,
-	onDoubleClick,
-	updateKanban,
-	kanban,
-}: CardProps) {
-	const [showSideMenu, setShowSideMenu] = useState(false);
-	const cardRef = useRef<HTMLDivElement>(null);
+	onClick,
+	onDelete,
+	onTitleUpdate,
+}) => {
 	const { attributes, listeners, setNodeRef, transform } = useDraggable({
 		id: card.id,
-		data: {
-			card,
-			columnId,
-		},
 	});
+	const [showMenu, setShowMenu] = useState(false);
+	const [isEditingTitle, setIsEditingTitle] = useState(false);
+	const [editedTitle, setEditedTitle] = useState(card.title);
 
 	const style = transform
 		? {
@@ -35,74 +29,77 @@ export function Card({
 			}
 		: undefined;
 
-	const handleDelete = (e: React.MouseEvent) => {
+	const handleTitleDoubleClick = (e: React.MouseEvent) => {
 		e.stopPropagation();
-		const updatedKanban: Kanban = {
-			...kanban,
-			data: kanban.data.map((column) => {
-				if (column.id === columnId) {
-					return {
-						...column,
-						cards: column.cards.filter((c) => c.id !== card.id),
-					};
-				}
-				return column;
-			}),
-		};
-		updateKanban(updatedKanban);
-		setShowSideMenu(false);
+		setIsEditingTitle(true);
 	};
 
-	const toggleSideMenu = (e: React.MouseEvent) => {
-		e.stopPropagation();
-		setShowSideMenu(!showSideMenu);
+	const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setEditedTitle(e.target.value);
 	};
 
-	useEffect(() => {
-		const handleClickOutside = (event: MouseEvent) => {
-			if (
-				cardRef.current &&
-				!cardRef.current.contains(event.target as Node)
-			) {
-				setShowSideMenu(false);
-			}
-		};
+	const handleTitleBlur = () => {
+		setIsEditingTitle(false);
+		if (editedTitle.trim() !== card.title) {
+			onTitleUpdate(card.id, editedTitle.trim());
+		}
+	};
 
-		document.addEventListener("mousedown", handleClickOutside);
-		return () => {
-			document.removeEventListener("mousedown", handleClickOutside);
-		};
-	}, []);
+	const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+		if (e.key === "Enter") {
+			handleTitleBlur();
+		}
+	};
 
 	return (
-		<div ref={cardRef} className="relative group">
-			<div
-				ref={setNodeRef}
-				style={style}
-				{...attributes}
-				{...listeners}
-				className="bg-[#0d1117] text-[#c9d1d9] p-2 mb-2 rounded-lg cursor-move relative"
-				onDoubleClick={onDoubleClick}
-			>
-				<div className="pointer-events-none">{card.title}</div>
-			</div>
+		<div
+			ref={setNodeRef}
+			style={style}
+			{...attributes}
+			{...listeners}
+			className="bg-white p-4 mb-2 rounded-lg shadow cursor-move relative group"
+			onClick={onClick}
+		>
+			{isEditingTitle ? (
+				<input
+					type="text"
+					value={editedTitle}
+					onChange={handleTitleChange}
+					onBlur={handleTitleBlur}
+					onKeyDown={handleTitleKeyDown}
+					className="w-full font-semibold"
+					autoFocus
+				/>
+			) : (
+				<h3
+					className="font-semibold mb-2 cursor-pointer"
+					onDoubleClick={handleTitleDoubleClick}
+				>
+					{card.title}
+				</h3>
+			)}
 			<button
-				onClick={toggleSideMenu}
-				className="absolute top-1 right-1 text-[#8b949e] hover:text-[#c9d1d9] opacity-0 group-hover:opacity-100 transition-opacity z-10 bg-[#0d1117] p-1 rounded"
-				aria-label="カードメニューを開く"
+				className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
+				onClick={(e) => {
+					e.stopPropagation();
+					setShowMenu(!showMenu);
+				}}
 			>
 				<BsThreeDots size={16} />
 			</button>
-			{showSideMenu && (
-				<div className="absolute top-0 right-[-200px] w-[200px] bg-[#161b22] border border-[#30363d] rounded shadow-lg z-20">
+			{showMenu && (
+				<div className="absolute top-8 right-2 bg-white shadow-lg rounded-lg p-2 z-10">
 					<button
-						onClick={handleDelete}
-						className="w-full text-left px-4 py-2 hover:bg-[#21262d] flex items-center text-[#c9d1d9]"
+						className="text-red-500 hover:text-red-700"
+						onClick={(e) => {
+							e.stopPropagation();
+							onDelete();
+						}}
 					>
-						<FaTrash className="mr-2" /> 削除
+						Delete
 					</button>
 				</div>
 			)}
 		</div>
 	);
-}
+};

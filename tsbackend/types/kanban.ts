@@ -1,31 +1,25 @@
-export type Column = {
-	id: string;
-	ColumnTitle: string;
-	cards: Card[];
-};
+import { Kanban, KanbanCard, KanbanColumn } from "@prisma/client";
 
-// 配列版の型定義
-export type ColumnArray = {
-	id: string;
-	ColumnTitle: string;
-	cards: Card[];
-}[];
+export interface KanbanUpdateInput {
+	title: string;
+	columns: ColumnUpdateInput[];
+}
 
-export type Card = {
-	id: string;
+export interface ColumnUpdateInput {
+	id?: string;
+	title: string;
+	cards: CardUpdateInput[];
+}
+
+export interface CardUpdateInput {
+	id?: string;
 	title: string;
 	status?: string;
 	assignee?: string;
-	dueDate?: string;
+	dueDate?: Date;
 	notes?: string;
-};
+}
 
-export type Kanban = {
-	id: string;
-	title: string;
-	data: Column[];
-	createdAt: string;
-	updatedAt: string;
-	userId: string;
-	home: boolean;
-};
+export interface KanbanWithRelations extends Kanban {
+	columns: (KanbanColumn & { cards: KanbanCard[] })[];
+}

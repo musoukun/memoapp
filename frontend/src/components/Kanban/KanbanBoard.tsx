@@ -1,192 +1,234 @@
-import { useState, useEffect } from "react";
-import { DndContext, DragEndEvent, closestCorners } from "@dnd-kit/core";
-import { CardDetails } from "./CardDetail";
-import { Column as ColumnType, Card, Kanban } from "../../types/kanban";
+import React, { useState, useEffect } from "react";
+import {
+	DndContext,
+	closestCorners,
+	DragOverEvent,
+	DragStartEvent,
+} from "@dnd-kit/core";
+import { useKanbanUpdate } from "../../hooks/useKanbanUpdate";
 import { Column } from "./Column";
+import { CardDetails } from "./CardDetails";
+import { KanbanCard } from "../../types/kanban";
+import { useSetRecoilState } from "recoil";
+import { kanbanState } from "../../atoms/kanbanAtom";
 import kanbanApi from "../../api/kanbanApi";
-import { AxiosResponse } from "axios";
 
-export function KanbanBoard() {
-	const [kanban, setKanban] = useState<Kanban | null>(null);
-	const [selectedCard, setSelectedCard] = useState<Card | null>(null);
+export const KanbanBoard: React.FC = () => {
+	const {
+		kanban,
+		addColumn,
+		deleteColumn,
+		addCard,
+		deleteCard,
+		moveCard,
+		updateCard,
+		updateKanbanTitle,
+		updateColumnTitle,
+	} = useKanbanUpdate();
+	const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null);
+	const [editingTitle, setEditingTitle] = useState<string | null>(null);
+	// eslint-disable-next-line @typescript-eslint/no-unused-vars
+	const [activeId, setActiveId] = useState<string | null>(null);
+	const setKanban = useSetRecoilState(kanbanState);
 
+	const fetchKanban = async () => {
+		try {
+			await kanbanApi.home().then((res) => {
+				setKanban(res.data);
+			});
+		} catch (error) {
+			console.error("Failed to fetch kanban:", error);
+		}
+	};
+
+	// 初期表示時にKanbanを取得
 	useEffect(() => {
-		fetchKanbanData();
+		fetchKanban();
 	}, []);
 
-	const fetchKanbanData = async () => {
-		try {
-			const response: AxiosResponse<Kanban | null> =
-				await kanbanApi.home();
-			if (response.data) {
-				setKanban(response.data);
-			}
-		} catch (error) {
-			console.error("Failed to fetch Kanban data", error);
-		}
+	const handleDragStart = (event: DragStartEvent) => {
+		const { active } = event;
+		setActiveId(active.id as string);
 	};
 
-	const updateKanban = async (updatedKanban: Kanban) => {
-		setKanban(updatedKanban);
-		try {
-			await kanbanApi.update(updatedKanban.id, updatedKanban);
-		} catch (error) {
-			console.error("Failed to update Kanban data", error);
-		}
-	};
-
-	const handleDoubleClick = (card: Card) => {
-		setSelectedCard(card);
-	};
-
-	const handleClose = () => {
-		setSelectedCard(null);
-	};
-
-	const handleDragEnd = async (event: DragEndEvent) => {
+	const handleDragOver = (event: DragOverEvent) => {
 		const { active, over } = event;
 		if (!over || !kanban) return;
 
-		const activeCard = active.data.current as {
-			card: Card;
-			columnId: string;
-		};
-		const overColumnId = over.id as string;
+		const activeId = active.id as string;
+		const overId = over.id as string;
 
-		if (activeCard.columnId !== overColumnId) {
-			setKanban((prevKanban) => {
-				if (!prevKanban) return null;
+		if (activeId === overId) return;
 
-				const updatedColumns = prevKanban.data.map((column) => {
-					if (column.id === activeCard.columnId) {
-						return {
-							...column,
-							cards: column.cards.filter(
-								(card) => card.id !== activeCard.card.id
-							),
-						};
-					}
-					if (column.id === overColumnId) {
-						return {
-							...column,
-							cards: [...column.cards, activeCard.card],
-						};
-					}
-					return column;
-				});
+		const activeColumn = kanban.columns.find((col) =>
+			col.cards.some((card) => card.id === activeId)
+		);
+		const overColumn = kanban.columns.find(
+			(col) =>
+				col.id === overId ||
+				col.cards.some((card) => card.id === overId)
+		);
 
-				const updatedKanban: Kanban = {
-					...prevKanban,
-					data: updatedColumns,
-				};
-				updateKanban(updatedKanban);
-				return updatedKanban;
-			});
+		if (!activeColumn || !overColumn) return;
+
+		if (activeColumn !== overColumn) {
+			const activeCardIndex = activeColumn.cards.findIndex(
+				(card) => card.id === activeId
+			);
+			const overCardIndex = overColumn.cards.findIndex(
+				(card) => card.id === overId
+			);
+
+			let newIndex: number;
+			if (overId === overColumn.id) {
+				newIndex = overColumn.cards.length;
+			} else {
+				newIndex =
+					overCardIndex >= 0
+						? overCardIndex
+						: overColumn.cards.length;
+			}
+
+			moveCard(
+				activeId,
+				activeColumn.cards[activeCardIndex],
+				activeColumn.id,
+				overColumn.id,
+				newIndex
+			);
+		} else {
+			const oldIndex = activeColumn.cards.findIndex(
+				(card) => card.id === activeId
+			);
+			const newIndex = activeColumn.cards.findIndex(
+				(card) => card.id === overId
+			);
+
+			if (oldIndex !== newIndex) {
+				moveCard(
+					activeId,
+					activeColumn.cards[oldIndex],
+					activeColumn.id,
+					activeColumn.id,
+					newIndex
+				);
+			}
 		}
 	};
 
-	const handleInputChange = async (field: keyof Card, value: string) => {
-		if (!kanban || !selectedCard) return;
-
-		setSelectedCard((prev) => (prev ? { ...prev, [field]: value } : null));
-		setKanban((prevKanban) => {
-			if (!prevKanban) return null;
-
-			const updatedColumns = prevKanban.data.map((column) => ({
-				...column,
-				cards: column.cards.map((card) =>
-					card.id === selectedCard.id
-						? { ...card, [field]: value }
-						: card
-				),
-			}));
-
-			const updatedKanban = { ...prevKanban, data: updatedColumns };
-			updateKanban(updatedKanban);
-			return updatedKanban;
-		});
+	const handleDragEnd = () => {
+		setActiveId(null);
 	};
 
-	const handleAddCard = async (columnId: string) => {
-		if (!kanban) return;
-
-		const newCard: Card = {
-			id: `card-${Date.now()}`,
-			title: "新しいカード",
-		};
-
-		const updatedKanban: Kanban = {
-			...kanban,
-			data: kanban.data.map((column) => {
-				if (column.id === columnId) {
-					return {
-						...column,
-						cards: [...column.cards, newCard],
-					};
-				}
-				return column;
-			}),
-		};
-
-		updateKanban(updatedKanban);
+	const handleCardClick = (card: KanbanCard) => {
+		setSelectedCard(card);
 	};
 
-	const handleAddColumn = async () => {
-		if (!kanban) return;
+	const handleCloseCardDetails = () => {
+		setSelectedCard(null);
+	};
 
-		const newColumn: ColumnType = {
-			id: `column-${Date.now()}`,
-			ColumnTitle: "新しい列",
-			cards: [],
-		};
+	const handleUpdateCard = (cardId: string, data: Partial<KanbanCard>) => {
+		updateCard(cardId, data);
+	};
 
-		const updatedKanban: Kanban = {
-			...kanban,
-			data: [...kanban.data, newColumn],
-		};
+	const handleAddCard = (columnId: string) => {
+		addCard(columnId, { title: "New Card" });
+	};
 
-		updateKanban(updatedKanban);
+	const handleDeleteCard = (columnId: string, cardId: string) => {
+		deleteCard(columnId, cardId);
+	};
+
+	const handleAddColumn = () => {
+		addColumn({ title: "New Column" });
+	};
+
+	const handleDeleteColumn = (columnId: string) => {
+		deleteColumn(columnId);
+	};
+
+	const handleTitleEdit = (
+		type: "kanban" | "column" | "card",
+		id: string,
+		newTitle: string
+	) => {
+		if (type === "kanban" && kanban) {
+			updateKanbanTitle(newTitle);
+		} else if (type === "column") {
+			updateColumnTitle(id, newTitle);
+		} else if (type === "card") {
+			updateCard(id, { title: newTitle });
+		}
+		setEditingTitle(null);
+	};
+
+	const handleCardTitleUpdate = (
+		columnId: string,
+		cardId: string,
+		newTitle: string
+	) => {
+		updateCard(cardId, { title: newTitle });
 	};
 
 	if (!kanban) return <div>Loading...</div>;
 
 	return (
-		<div className="h-full my-5">
-			<div className="my-4 text-xl font-bold text-[#c9d1d9]">
-				{kanban.title}
-			</div>
+		<div className="p-4">
+			<h1
+				className="text-2xl font-bold mb-4 cursor-pointer"
+				onDoubleClick={() => setEditingTitle("kanban")}
+			>
+				{editingTitle === "kanban" ? (
+					<input
+						type="text"
+						value={kanban.title}
+						onChange={(e) =>
+							handleTitleEdit("kanban", kanban.id, e.target.value)
+						}
+						onBlur={() => setEditingTitle(null)}
+						autoFocus
+					/>
+				) : (
+					kanban.title
+				)}
+			</h1>
 			<DndContext
+				onDragStart={handleDragStart}
+				onDragOver={handleDragOver}
 				onDragEnd={handleDragEnd}
 				collisionDetection={closestCorners}
 			>
-				<div className="flex gap-4">
-					{kanban.data.map((column) => (
+				<div className="flex gap-4 overflow-x-auto">
+					{kanban.columns.map((column) => (
 						<Column
 							key={column.id}
 							column={column}
-							onCardDoubleClick={handleDoubleClick}
+							onCardClick={handleCardClick}
 							onAddCard={handleAddCard}
-							updateKanban={updateKanban}
-							kanban={kanban}
+							onDeleteCard={handleDeleteCard}
+							onDeleteColumn={handleDeleteColumn}
+							onTitleEdit={(newTitle) =>
+								handleTitleEdit("column", column.id, newTitle)
+							}
+							onCardTitleUpdate={handleCardTitleUpdate}
 						/>
 					))}
 					<button
 						onClick={handleAddColumn}
-						className="bg-[#161b22] text-[#c9d1d9] px-4 py-2 rounded-lg"
+						className="bg-gray-200 text-gray-700 px-4 py-2 rounded-lg h-min whitespace-nowrap"
 					>
-						+ 新しい列
+						+ Add Column
 					</button>
 				</div>
 			</DndContext>
 			{selectedCard && (
 				<CardDetails
 					card={selectedCard}
-					onClose={handleClose}
-					onInputChange={handleInputChange}
+					onClose={handleCloseCardDetails}
+					onUpdate={handleUpdateCard}
 				/>
 			)}
 		</div>
 	);
-}
-
-export default KanbanBoard;
+};

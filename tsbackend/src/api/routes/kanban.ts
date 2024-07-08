@@ -1,6 +1,6 @@
 import { Router } from "express";
 import * as kanbanController from "../controllers/kanban";
-import { param } from "express-validator";
+import { param, body } from "express-validator";
 import * as validation from "../middleware/validation";
 import { verifyToken } from "../middleware/tokenHandler";
 
@@ -8,49 +8,80 @@ const router = Router();
 
 router.use(verifyToken);
 
-// Kanbanを作成
 router.post("/", kanbanController.create);
-
-// 全てのKanbanを取得
 router.get("/", kanbanController.getAll);
-
-// HomeのKanbanを取得
 router.get("/home", kanbanController.getOne);
 
-// Kanbanを更新（データ全体）
-router.put(
-	"/:kanbanId",
-	param("kanbanId").custom((value) => {
-		if (!validation.isObjectId(value)) {
-			return Promise.reject("無効なIDです。");
-		} else return Promise.resolve();
-	}),
-
-	kanbanController.update
-);
-
-// 特定のKanbanを取得
 router.get(
 	"/:kanbanId",
-	param("kanbanId").custom((value) => {
-		if (!validation.isObjectId(value)) {
-			return Promise.reject("無効なIDです。");
-		} else return Promise.resolve();
-	}),
-
+	param("kanbanId").custom(validation.isObjectId),
 	kanbanController.getOne
 );
-
-// Kanbanを削除
 router.delete(
 	"/:kanbanId",
-	param("kanbanId").custom((value) => {
-		if (!validation.isObjectId(value)) {
-			return Promise.reject("無効なIDです。");
-		} else return Promise.resolve();
-	}),
-
+	param("kanbanId").custom(validation.isObjectId),
 	kanbanController.deleteKanban
+);
+
+router.post(
+	"/:kanbanId/column",
+	param("kanbanId").custom(validation.isObjectId),
+	kanbanController.addColumn
+);
+router.delete(
+	"/:kanbanId/column/:columnId",
+	[
+		param("kanbanId").custom(validation.isObjectId),
+		param("columnId").custom(validation.isObjectId),
+	],
+	kanbanController.deleteColumn
+);
+
+router.post(
+	"/:kanbanId/column/:columnId/card",
+	[
+		param("kanbanId").custom(validation.isObjectId),
+		param("columnId").custom(validation.isObjectId),
+	],
+	kanbanController.addCard
+);
+router.delete(
+	"/:kanbanId/column/:columnId/card/:cardId",
+	[
+		param("kanbanId").custom(validation.isObjectId),
+		param("columnId").custom(validation.isObjectId),
+		param("cardId").custom(validation.isObjectId),
+	],
+	kanbanController.deleteCard
+);
+router.put(
+	"/:kanbanId/column/:columnId/card/:cardId",
+	[
+		param("kanbanId").custom(validation.isObjectId),
+		param("columnId").custom(validation.isObjectId),
+		param("cardId").custom(validation.isObjectId),
+	],
+	kanbanController.updateCard
+);
+router.put(
+	"/:kanbanId/move-card/:cardId",
+	[
+		param("kanbanId").custom(validation.isObjectId),
+		param("cardId").custom(validation.isObjectId),
+		body("fromColumnId").custom(validation.isObjectId),
+		body("toColumnId").custom(validation.isObjectId),
+	],
+	kanbanController.moveCard
+);
+router.put(
+	"/:kanbanId/column/:columnId",
+	[
+		param("kanbanId").custom(validation.isObjectId),
+		param("columnId").custom(validation.isObjectId),
+		body("title").optional().isString(),
+		// 必要に応じて他のバリデーションを追加
+	],
+	kanbanController.updateColumn
 );
 
 export default router;

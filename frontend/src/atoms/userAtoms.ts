@@ -12,3 +12,8 @@ export const userStateAtom = atom<User>({
 		username: "",
 	}, // 初期状態
 });
+
+export const authLoadingAtom = atom<boolean>({
+	key: "authLoading",
+	default: true,
+});

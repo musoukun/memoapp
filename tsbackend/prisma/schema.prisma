@@ -23,16 +23,45 @@ model User {
 }
 
 model Kanban {
-  id        String   @id @default(uuid())
+  id        String         @id @default(uuid())
   userId    String
-  title     String   @default("New Kanban")
-  data      Json
-  home      Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  user      User     @relation(fields: [userId], references: [id])
+  title     String         @default("New Kanban")
+  home      Boolean        @default(false)
+  createdAt DateTime       @default(now())
+  updatedAt DateTime       @updatedAt
+  user      User           @relation(fields: [userId], references: [id] , onDelete: Cascade)
+  columns   KanbanColumn[]
 
   @@index([userId], name: "index_kanbans_on_user_id")
+}
+
+model KanbanColumn {
+  id        String       @id @default(uuid())
+  kanbanId  String
+  title     String
+  order     Int
+  createdAt DateTime     @default(now())
+  updatedAt DateTime     @updatedAt
+  kanban    Kanban       @relation(fields: [kanbanId], references: [id], onDelete: Cascade)
+  cards     KanbanCard[]
+
+  @@index([kanbanId], name: "index_kanban_columns_on_kanban_id")
+}
+
+model KanbanCard {
+  id         String       @id @default(uuid())
+  columnId   String
+  title      String
+  order      Int
+  status     String?
+  assignee   String?
+  dueDate    DateTime?
+  notes      String?
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  column     KanbanColumn @relation(fields: [columnId], references: [id] , onDelete: Cascade)
+
+  @@index([columnId], name: "index_kanban_cards_on_column_id")
 }
 
 model Note {

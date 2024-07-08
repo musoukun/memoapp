@@ -1,32 +1,20 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import { Outlet, useNavigate } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import notionLogo from "../../assets/markdown.svg";
-import authUtils from "../../utils/authUtil";
-import { userStateAtom } from "../../atoms/userAtoms";
-import { useRecoilState } from "recoil";
+
 import "../../App.css";
 
 const AuthLayout = () => {
 	const navigate = useNavigate();
-	const [__loading, setLoading] = useState(true);
-	const [__user, setUser] = useRecoilState(userStateAtom);
+	const user = localStorage.getItem("user");
 
 	useEffect(() => {
-		//JWTを持ってるのか確認する。
-		const checkAuth = async () => {
-			// 認証チェック
-			const isAuthenticated = await authUtils.isAuthenticated();
-			if (!isAuthenticated) {
-				setLoading(false);
-			} else {
-				setUser(isAuthenticated);
-				navigate("/");
-			}
-		};
-		checkAuth();
-	}, [navigate]);
+		if (user) {
+			navigate("/");
+		}
+	}, [user, navigate]);
 
 	return (
 		<div className="container mx-auto max-w-md px-4">

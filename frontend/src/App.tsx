@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useParams } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import AuthLayout from "./components/layout/AuthLayout";
 import Login from "./components/pages/Login";
 import Register from "./components/pages/Register";
@@ -6,8 +6,15 @@ import AppLayout from "./components/layout/AppLayout";
 import Home from "./components/pages/Home";
 import Note from "./components/pages/Note";
 import { useEffect } from "react";
+import { useRecoilValue, useSetRecoilState } from "recoil";
+import { authLoadingAtom, userStateAtom } from "./atoms/userAtoms";
+import authUtils from "./utils/authUtil";
 
 function App() {
+	const setUser = useSetRecoilState(userStateAtom);
+	const setAuthLoading = useSetRecoilState(authLoadingAtom);
+	const authLoading = useRecoilValue(authLoadingAtom);
+
 	useEffect(() => {
 		if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
 			document.documentElement.classList.add("dark");
@@ -15,6 +22,22 @@ function App() {
 			document.documentElement.classList.remove("dark");
 		}
 	}, []);
+
+	useEffect(() => {
+		const checkAuth = async () => {
+			setAuthLoading(true);
+			const isUser = await authUtils.isAuthenticated();
+			if (isUser) {
+				setUser(isUser);
+			}
+			setAuthLoading(false);
+		};
+		checkAuth();
+	}, [setUser, setAuthLoading]);
+
+	if (authLoading) {
+		return <div>Loading...</div>;
+	}
 
 	const recentAccess = [
 		{ name: "無題", time: "9分前" },
@@ -83,21 +106,7 @@ function App() {
 								/>
 							}
 						/>
-						<Route
-							path="note/:id"
-							element={<Note {...useParams()} />}
-						/>
-						<Route
-							path="note"
-							element={
-								<Home
-									title={"ホーム"}
-									recentAccess={recentAccess}
-									events={events}
-									tasks={tasks}
-								/>
-							}
-						/>
+						<Route path="note/:id" element={<Note />} />
 					</Route>
 				</Routes>
 			</BrowserRouter>

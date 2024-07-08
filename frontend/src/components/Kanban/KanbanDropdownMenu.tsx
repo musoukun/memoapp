@@ -1,4 +1,3 @@
-// src/components/Kanban/DropdownMenu.tsx
 import React, { useRef, useEffect } from "react";
 import { FaTrash } from "react-icons/fa";
 
@@ -27,8 +26,6 @@ export const KanbanDropdownMenu: React.FC<KanbanDropdownMenuProps> = ({
 
 		if (show) {
 			document.addEventListener("mousedown", handleClickOutside);
-		} else {
-			document.removeEventListener("mousedown", handleClickOutside);
 		}
 
 		return () => {
@@ -41,16 +38,14 @@ export const KanbanDropdownMenu: React.FC<KanbanDropdownMenuProps> = ({
 	return (
 		<div
 			ref={dropdownRef}
-			className="absolute top-8 right-0 bg-[#161b22] border border-[#30363d] rounded shadow-lg"
-			style={{ minWidth: "100px", zIndex: 1000 }}
+			className="absolute top-8 right-0 bg-white border border-gray-200 rounded shadow-lg z-10"
 		>
 			<button
 				onClick={onDelete}
-				className="w-full text-left px-4 py-2 hover:bg-[#21262d] flex items-center"
+				className="w-full text-left px-4 py-2 hover:bg-gray-100 flex items-center text-red-600"
 			>
-				<FaTrash className="mr-2" /> 削除
+				<FaTrash className="mr-2" /> Delete
 			</button>
 		</div>
 	);
 };
-export default KanbanDropdownMenu;

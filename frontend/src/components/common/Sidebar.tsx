@@ -52,6 +52,7 @@ const Sidebar = () => {
 		setIsLoggingOut(true);
 		try {
 			localStorage.removeItem("token");
+			localStorage.removeItem("user");
 			resetNotes();
 			resetNote();
 			resetUser();
