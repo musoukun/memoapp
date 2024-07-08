@@ -1,55 +1,22 @@
-import React, { useState } from "react";
-import { useDraggable } from "@dnd-kit/core";
+import React from "react";
+import { useSortable } from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
 import { KanbanCard } from "../../types/kanban";
-import { BsThreeDots } from "react-icons/bs";
-import { KanbanDropdownMenu } from "./KanbanDropdownMenu";
 
 interface CardProps {
 	card: KanbanCard;
-	onClick: () => void;
 	onDelete: () => void;
-	onTitleUpdate: (cardId: string, newTitle: string) => void;
 }
 
-export const Card: React.FC<CardProps> = ({
-	card,
-	onClick,
-	onDelete,
-	onTitleUpdate,
-}) => {
-	const { attributes, listeners, setNodeRef, transform } = useDraggable({
-		id: card.id,
-	});
-	const [showMenu, setShowMenu] = useState(false);
-	const [isEditingTitle, setIsEditingTitle] = useState(false);
-	const [editedTitle, setEditedTitle] = useState(card.title);
+export const Card: React.FC<CardProps> = ({ card, onDelete }) => {
+	const { attributes, listeners, setNodeRef, transform, transition } =
+		useSortable({
+			id: card.id,
+		});
 
-	const style = transform
-		? {
-				transform: `translate3d(${transform.x}px, ${transform.y}px, 0)`,
-			}
-		: undefined;
-
-	const handleTitleDoubleClick = (e: React.MouseEvent) => {
-		e.stopPropagation();
-		setIsEditingTitle(true);
-	};
-
-	const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-		setEditedTitle(e.target.value);
-	};
-
-	const handleTitleBlur = () => {
-		setIsEditingTitle(false);
-		if (editedTitle.trim() !== card.title) {
-			onTitleUpdate(card.id, editedTitle.trim());
-		}
-	};
-
-	const handleTitleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-		if (e.key === "Enter") {
-			handleTitleBlur();
-		}
+	const style = {
+		transform: CSS.Transform.toString(transform),
+		transition,
 	};
 
 	return (
@@ -58,43 +25,18 @@ export const Card: React.FC<CardProps> = ({
 			style={style}
 			{...attributes}
 			{...listeners}
-			className="bg-[#0d1117] text-[#c9d1d9] p-2 mb-2 rounded-lg cursor-pointer"
-			onDoubleClick={onClick}
+			className="bg-[#0d1117] text-[#c9d1d9] p-2 mb-2 rounded-lg cursor-pointer relative group"
 		>
-			{isEditingTitle ? (
-				<input
-					type="text"
-					value={editedTitle}
-					onChange={handleTitleChange}
-					onBlur={handleTitleBlur}
-					onKeyDown={handleTitleKeyDown}
-					className="w-full "
-					autoFocus
-				/>
-			) : (
-				<h3
-					className="text-lg	 text-[#c9d1d9]"
-					onDoubleClick={handleTitleDoubleClick}
-				>
-					{card.title}
-				</h3>
-			)}
+			<h3 className="text-lg text-[#c9d1d9]">{card.title}</h3>
 			<button
 				className="absolute top-2 right-2 text-gray-400 hover:text-gray-600 opacity-0 group-hover:opacity-100 transition-opacity"
 				onClick={(e) => {
 					e.stopPropagation();
-					setShowMenu(!showMenu);
+					onDelete();
 				}}
 			>
-				<BsThreeDots size={16} />
+				×
 			</button>
-			{showMenu && (
-				<KanbanDropdownMenu
-					show={showMenu}
-					onClose={() => setShowMenu(false)}
-					onDelete={onDelete}
-				/>
-			)}
 		</div>
 	);
 };
