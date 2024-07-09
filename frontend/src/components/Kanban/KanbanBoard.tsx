@@ -13,6 +13,7 @@ import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
 import { Column } from "./Column";
 
 import { mockKanbanData } from "./mockKanbanData";
+import { CardDetails } from "./CardDetails";
 
 export type MockKanban = {
 	id: string;
@@ -31,9 +32,16 @@ export type MockKanban = {
 
 export const KanbanBoard: React.FC = () => {
 	const [kanban, setKanban] = useState<MockKanban>(mockKanbanData);
+	const [selectedCard, setSelectedCard] = useState<
+		MockKanban["columns"][0]["cards"][0] | null
+	>(null);
 
 	const sensors = useSensors(
-		useSensor(PointerSensor),
+		useSensor(PointerSensor, {
+			activationConstraint: {
+				distance: 5,
+			},
+		}),
 		useSensor(KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,
 		})
@@ -161,21 +169,53 @@ export const KanbanBoard: React.FC = () => {
 		}));
 	}, []);
 
-	const handleDeleteCard = useCallback((columnId: string, cardId: string) => {
-		setKanban((prevKanban) => ({
-			...prevKanban,
-			columns: prevKanban.columns.map((column) =>
-				column.id === columnId
-					? {
-							...column,
-							cards: column.cards.filter(
-								(card) => card.id !== cardId
-							),
-						}
-					: column
-			),
-		}));
-	}, []);
+	const handleDeleteCard = useCallback(
+		(columnId: string, cardId: string) => {
+			setKanban((prevKanban) => ({
+				...prevKanban,
+				columns: prevKanban.columns.map((column) =>
+					column.id === columnId
+						? {
+								...column,
+								cards: column.cards.filter(
+									(card) => card.id !== cardId
+								),
+							}
+						: column
+				),
+			}));
+			if (selectedCard && selectedCard.id === cardId) {
+				setSelectedCard(null);
+			}
+		},
+		[selectedCard]
+	);
+
+	const handleUpdateCard = useCallback(
+		(
+			columnId: string,
+			cardId: string,
+			updatedCard: MockKanban["columns"][0]["cards"][0]
+		) => {
+			setKanban((prevKanban) => ({
+				...prevKanban,
+				columns: prevKanban.columns.map((column) =>
+					column.id === columnId
+						? {
+								...column,
+								cards: column.cards.map((card) =>
+									card.id === cardId ? updatedCard : card
+								),
+							}
+						: column
+				),
+			}));
+			if (selectedCard && selectedCard.id === cardId) {
+				setSelectedCard(updatedCard);
+			}
+		},
+		[selectedCard]
+	);
 
 	const handleAddColumn = useCallback(() => {
 		const newColumn = {
@@ -219,25 +259,47 @@ export const KanbanBoard: React.FC = () => {
 			onDragEnd={handleDragEnd}
 			onDragOver={handleDragOver}
 		>
-			<div className="p-4 dark:bg-gray-800 min-h-screen">
-				<div className="flex gap-4 overflow-x-auto">
-					{kanban.columns.map((column) => (
-						<Column
-							key={column.id}
-							column={column}
-							onAddCard={handleAddCard}
-							onDeleteCard={handleDeleteCard}
-							onDeleteColumn={handleDeleteColumn}
-							onUpdateTitle={handleUpdateColumnTitle}
-						/>
-					))}
-					<button
-						onClick={handleAddColumn}
-						className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg h-min whitespace-nowrap"
-					>
-						+ 列を追加
-					</button>
+			<div className="flex p-4 dark:bg-gray-800 min-h-screen">
+				<div className="flex-grow overflow-x-auto">
+					<div className="flex gap-4">
+						{kanban.columns.map((column) => (
+							<Column
+								key={column.id}
+								column={column}
+								onAddCard={handleAddCard}
+								onDeleteCard={handleDeleteCard}
+								onDeleteColumn={handleDeleteColumn}
+								onUpdateTitle={handleUpdateColumnTitle}
+								onSelectCard={setSelectedCard as any}
+								onUpdateCard={handleUpdateCard as any}
+							/>
+						))}
+						<button
+							onClick={handleAddColumn}
+							className="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 px-4 py-2 rounded-lg h-min whitespace-nowrap"
+						>
+							+ 列を追加
+						</button>
+					</div>
 				</div>
+				{selectedCard && (
+					<CardDetails
+						card={selectedCard}
+						onClose={() => setSelectedCard(null)}
+						onUpdate={(updatedCard) => {
+							const column = kanban.columns.find((col) =>
+								col.cards.some((c) => c.id === selectedCard.id)
+							);
+							if (column) {
+								handleUpdateCard(
+									column.id,
+									selectedCard.id,
+									updatedCard as any
+								);
+							}
+						}}
+					/>
+				)}
 			</div>
 		</DndContext>
 	);

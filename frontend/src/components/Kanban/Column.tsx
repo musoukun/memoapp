@@ -7,6 +7,7 @@ import {
 import { KanbanColumn } from "../../types/kanban";
 import { Card } from "./Card";
 import { BsThreeDots } from "react-icons/bs";
+import { Menu, MenuItem } from "@mui/material";
 
 interface ColumnProps {
 	column: KanbanColumn;
@@ -14,6 +15,12 @@ interface ColumnProps {
 	onDeleteCard: (columnId: string, cardId: string) => void;
 	onDeleteColumn: (columnId: string) => void;
 	onUpdateTitle: (columnId: string, newTitle: string) => void;
+	onSelectCard: (card: KanbanColumn["cards"][0]) => void;
+	onUpdateCard: (
+		columnId: string,
+		cardId: string,
+		updatedCard: KanbanColumn["cards"][0]
+	) => void;
 }
 
 export const Column: React.FC<ColumnProps> = ({
@@ -22,10 +29,13 @@ export const Column: React.FC<ColumnProps> = ({
 	onDeleteCard,
 	onDeleteColumn,
 	onUpdateTitle,
+	onSelectCard,
+	onUpdateCard,
 }) => {
 	const { setNodeRef } = useDroppable({ id: column.id });
 	const [isEditingTitle, setIsEditingTitle] = useState(false);
 	const [editedTitle, setEditedTitle] = useState(column.title);
+	const [menuAnchorEl, setMenuAnchorEl] = useState<null | HTMLElement>(null);
 
 	const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 		setEditedTitle(e.target.value);
@@ -36,6 +46,19 @@ export const Column: React.FC<ColumnProps> = ({
 		if (editedTitle.trim() !== column.title) {
 			onUpdateTitle(column.id, editedTitle.trim());
 		}
+	};
+
+	const handleMenuOpen = (event: React.MouseEvent<HTMLButtonElement>) => {
+		setMenuAnchorEl(event.currentTarget);
+	};
+
+	const handleMenuClose = () => {
+		setMenuAnchorEl(null);
+	};
+
+	const handleDeleteColumn = () => {
+		onDeleteColumn(column.id);
+		handleMenuClose();
 	};
 
 	return (
@@ -60,11 +83,18 @@ export const Column: React.FC<ColumnProps> = ({
 				)}
 				<div className="flex items-center">
 					<button
-						onClick={() => onDeleteColumn(column.id)}
+						onClick={handleMenuOpen}
 						className="text-gray-500 hover:text-gray-700 mr-2"
 					>
 						<BsThreeDots size={16} />
 					</button>
+					<Menu
+						anchorEl={menuAnchorEl}
+						open={Boolean(menuAnchorEl)}
+						onClose={handleMenuClose}
+					>
+						<MenuItem onClick={handleDeleteColumn}>削除</MenuItem>
+					</Menu>
 					<span className="text-gray-500">{column.cards.length}</span>
 				</div>
 			</div>
@@ -78,6 +108,10 @@ export const Column: React.FC<ColumnProps> = ({
 							key={card.id}
 							card={card}
 							onDelete={() => onDeleteCard(column.id, card.id)}
+							onClick={() => onSelectCard(card)}
+							onUpdate={(updatedCard) =>
+								onUpdateCard(column.id, card.id, updatedCard)
+							}
 						/>
 					))}
 				</div>
