@@ -216,14 +216,24 @@ const Sidebar = () => {
 	const handleDeleteKanban = async (id: string) => {
 		try {
 			await kanbanApi.delete(id);
+			const index = userKanbans.findIndex((kanban) => kanban.id === id);
 			const updatedKanbans = userKanbans.filter(
 				(kanban) => kanban.id !== id
 			);
 			setUserKanbans(updatedKanbans);
 			setOpenKanbanDropdown(null);
-			if (selectedKanbanId === id) {
-				setSelectedKanbanId(null);
-				navigate("/kanban");
+
+			// 削除されたKanbanの前後のKanbanを検索
+			const prevKanbanId = updatedKanbans[index - 1]?.id;
+			const nextKanbanId = updatedKanbans[index]?.id;
+
+			// 前後のKanbanに基づいてナビゲート
+			if (prevKanbanId) {
+				navigate(`/kanban/${prevKanbanId}`);
+			} else if (nextKanbanId) {
+				navigate(`/kanban/${nextKanbanId}`);
+			} else {
+				navigate("/");
 			}
 		} catch (error) {
 			console.error("Failed to delete kanban:", error);

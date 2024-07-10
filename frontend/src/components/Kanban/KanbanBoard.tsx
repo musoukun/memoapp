@@ -1,20 +1,21 @@
-import React, { useState, useCallback, useEffect } from "react";
 import {
+	useSensors,
+	useSensor,
+	PointerSensor,
+	KeyboardSensor,
 	DndContext,
 	closestCorners,
-	KeyboardSensor,
-	PointerSensor,
-	useSensor,
-	useSensors,
-	DragOverEvent,
-	DragEndEvent,
 } from "@dnd-kit/core";
-import { arrayMove, sortableKeyboardCoordinates } from "@dnd-kit/sortable";
-import { Column } from "./Column";
-import { CardDetails } from "./CardDetails";
-import { Kanban, KanbanCard, KanbanColumn } from "../../types/kanban";
-import kanbanApi from "../../api/kanbanApi";
+import { sortableKeyboardCoordinates } from "@dnd-kit/sortable";
+import { useState, useCallback, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import kanbanApi from "../../api/kanbanApi";
+import { useKanbanDnD } from "../../hooks/useKanbanDnD";
+import { useKanbanState } from "../../hooks/useKanbanState";
+import { Kanban, KanbanCard, KanbanColumn } from "../../types/kanban";
+import { createNewCard, createNewColumn } from "../../utils/KanbanUtils";
+import { CardDetails } from "./CardDetails";
+import { Column } from "./Column";
 
 interface KanbanBoardProps {
 	initialKanban?: Kanban;
@@ -26,18 +27,20 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 	height,
 }) => {
 	const { id } = useParams<{ id: string }>();
-	const [kanban, setKanban] = useState<Kanban | null>(initialKanban || null);
+	const { kanban, setKanban, updateKanban, updateColumn, updateCard, error } =
+		useKanbanState(initialKanban || null, id!);
 	const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null);
 
 	const sensors = useSensors(
-		useSensor(PointerSensor, {
-			activationConstraint: {
-				distance: 5,
-			},
-		}),
+		useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
 		useSensor(KeyboardSensor, {
 			coordinateGetter: sortableKeyboardCoordinates,
 		})
+	);
+
+	const { handleDragOver, handleDragEnd } = useKanbanDnD(
+		kanban,
+		updateKanban
 	);
 
 	const fetchKanban = useCallback(async () => {
@@ -49,7 +52,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 				console.log("Failed to fetch Kanban:", err);
 			}
 		}
-	}, [id]);
+	}, [id, setKanban]);
 
 	useEffect(() => {
 		if (!initialKanban) {
@@ -57,228 +60,66 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 		}
 	}, [fetchKanban, initialKanban]);
 
-	const findColumn = useCallback(
-		(id: string): KanbanColumn | undefined => {
-			return kanban?.columns.find(
-				(col: KanbanColumn) =>
-					col.id === id || col.cards.some((card) => card.id === id)
-			);
+	const handleAddCard = useCallback(
+		(columnId: string) => {
+			updateColumn(columnId, (column) => ({
+				...column,
+				cards: [createNewCard(), ...column.cards],
+			}));
 		},
-		[kanban]
+		[updateColumn]
 	);
-
-	const handleDragOver = useCallback(
-		(event: DragOverEvent) => {
-			if (!kanban) return;
-
-			const { active, over } = event;
-			if (!over) return;
-
-			const activeId = active.id.toString();
-			const overId = over.id.toString();
-
-			const activeColumn = findColumn(activeId);
-			const overColumn = findColumn(overId);
-
-			if (!activeColumn || !overColumn || activeColumn === overColumn) {
-				return;
-			}
-
-			setKanban((prevKanban) => {
-				if (!prevKanban) return null;
-				const newColumns = prevKanban.columns.map((col) => {
-					if (col.id === activeColumn.id) {
-						return {
-							...col,
-							cards: col.cards.filter(
-								(card) => card.id !== activeId
-							),
-						};
-					}
-					if (col.id === overColumn.id) {
-						const movedCard = activeColumn.cards.find(
-							(card) => card.id === activeId
-						);
-						return {
-							...col,
-							cards: [...col.cards, movedCard!],
-						};
-					}
-					return col;
-				});
-
-				return {
-					...prevKanban,
-					columns: newColumns,
-				};
-			});
-		},
-		[findColumn, kanban]
-	);
-
-	const handleDragEnd = useCallback(
-		(event: DragEndEvent) => {
-			if (!kanban) return;
-
-			const { active, over } = event;
-			if (!over) return;
-
-			const activeId = active.id.toString();
-			const overId = over.id.toString();
-
-			const activeColumn = findColumn(activeId);
-			const overColumn = findColumn(overId);
-
-			if (!activeColumn || !overColumn || activeColumn !== overColumn) {
-				return;
-			}
-
-			const activeIndex = activeColumn.cards.findIndex(
-				(card) => card.id === activeId
-			);
-			const overIndex = overColumn.cards.findIndex(
-				(card) => card.id === overId
-			);
-
-			if (activeIndex !== overIndex) {
-				setKanban((prevKanban) => {
-					if (!prevKanban) return null;
-					const newColumns = prevKanban.columns.map((col) => {
-						if (col.id === activeColumn.id) {
-							return {
-								...col,
-								cards: arrayMove(
-									col.cards,
-									activeIndex,
-									overIndex
-								),
-							};
-						}
-						return col;
-					});
-
-					return {
-						...prevKanban,
-						columns: newColumns,
-					};
-				});
-			}
-		},
-		[findColumn, kanban]
-	);
-
-	const handleAddCard = useCallback((columnId: string) => {
-		const newCard: KanbanCard = {
-			id: `card-${Date.now()}`,
-			title: "新しいカード",
-			description: "",
-		};
-
-		setKanban((prevKanban) => {
-			if (!prevKanban) return null;
-			return {
-				...prevKanban,
-				columns: prevKanban.columns.map((column) =>
-					column.id === columnId
-						? { ...column, cards: [newCard, ...column.cards] }
-						: column
-				),
-			};
-		});
-	}, []);
 
 	const handleDeleteCard = useCallback(
 		(columnId: string, cardId: string) => {
-			setKanban((prevKanban) => {
-				if (!prevKanban) return null;
-				return {
-					...prevKanban,
-					columns: prevKanban.columns.map((column) =>
-						column.id === columnId
-							? {
-									...column,
-									cards: column.cards.filter(
-										(card) => card.id !== cardId
-									),
-								}
-							: column
-					),
-				};
-			});
+			updateColumn(columnId, (column) => ({
+				...column,
+				cards: column.cards.filter((card) => card.id !== cardId),
+			}));
 			if (selectedCard && selectedCard.id === cardId) {
 				setSelectedCard(null);
 			}
 		},
-		[selectedCard]
+		[updateColumn, selectedCard]
 	);
 
 	const handleUpdateCard = useCallback(
 		(columnId: string, cardId: string, updatedCard: KanbanCard) => {
-			setKanban((prevKanban) => {
-				if (!prevKanban) return null;
-				return {
-					...prevKanban,
-					columns: prevKanban.columns.map((column) =>
-						column.id === columnId
-							? {
-									...column,
-									cards: column.cards.map((card) =>
-										card.id === cardId ? updatedCard : card
-									),
-								}
-							: column
-					),
-				};
-			});
+			updateCard(columnId, cardId, () => updatedCard);
 			if (selectedCard && selectedCard.id === cardId) {
 				setSelectedCard(updatedCard);
 			}
 		},
-		[selectedCard]
+		[updateCard, selectedCard]
 	);
 
 	const handleAddColumn = useCallback(() => {
-		const newColumn: KanbanColumn = {
-			id: `column-${Date.now()}`,
-			title: "新しい列",
-			cards: [],
-		};
-		setKanban((prevKanban) => {
-			if (!prevKanban) return null;
-			return {
-				...prevKanban,
-				columns: [...prevKanban.columns, newColumn],
-			};
-		});
-	}, []);
+		updateKanban((prevKanban) => ({
+			...prevKanban,
+			columns: [...prevKanban.columns, createNewColumn()],
+		}));
+	}, [updateKanban]);
 
-	const handleDeleteColumn = useCallback((columnId: string) => {
-		setKanban((prevKanban) => {
-			if (!prevKanban) return null;
-			return {
+	const handleDeleteColumn = useCallback(
+		(columnId: string) => {
+			updateKanban((prevKanban) => ({
 				...prevKanban,
 				columns: prevKanban.columns.filter(
 					(column) => column.id !== columnId
 				),
-			};
-		});
-	}, []);
+			}));
+		},
+		[updateKanban]
+	);
 
 	const handleUpdateColumnTitle = useCallback(
 		(columnId: string, newTitle: string) => {
-			setKanban((prevKanban) => {
-				if (!prevKanban) return null;
-				return {
-					...prevKanban,
-					columns: prevKanban.columns.map((column) =>
-						column.id === columnId
-							? { ...column, title: newTitle }
-							: column
-					),
-				};
-			});
+			updateColumn(columnId, (column) => ({
+				...column,
+				title: newTitle,
+			}));
 		},
-		[]
+		[updateColumn]
 	);
 
 	if (!kanban) {
@@ -293,6 +134,7 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 			onDragOver={handleDragOver}
 		>
 			<div className={`${height} flex p-4 dark:bg-gray-800 min-h-screen`}>
+				{error && <div className="text-red-500">{error}</div>}
 				<div className="flex-grow overflow-x-auto">
 					<div className="flex gap-4">
 						{kanban.columns.map((column: KanbanColumn) => (
