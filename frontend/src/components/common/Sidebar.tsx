@@ -17,14 +17,9 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 import DropdownMenu from "./DropdownMenu";
 import kanbanApi from "../../api/kanbanApi";
-<<<<<<< HEAD
-import { Kanban } from "../../types/kanban";
-import { AxiosResponse } from "axios";
-=======
 import { Kanban, KanbanColumn } from "../../types/kanban";
 import { v4 as uuidv4 } from "uuid";
 import { userKanbansAtom } from "../../atoms/kanbanAtom";
->>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 
 const Sidebar = () => {
 	const navigate = useNavigate();
@@ -60,21 +55,7 @@ const Sidebar = () => {
 		y: 0,
 	});
 
-	const [kanbans, setKanbans] = useState<Kanban[]>([]);
-	const [loading, setLoading] = useState(true);
-
 	useEffect(() => {
-<<<<<<< HEAD
-		const fetchData = async () => {
-			try {
-				setLoading(true);
-				const notesResponse = await noteApi.getAll();
-				setNotes(notesResponse.data);
-
-				const kanbansResponse: AxiosResponse<Kanban[]> =
-					await kanbanApi.getUserKanbans();
-				setKanbans(kanbansResponse.data);
-=======
 		const fetchKanbans = async () => {
 			try {
 				const response = await kanbanApi.getKanbans();
@@ -88,18 +69,11 @@ const Sidebar = () => {
 				// ユーザに紐づくNoteの一覧を取得するAPI呼び出し
 				const response = await noteApi.getAll();
 				setNotes(response.data);
->>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 			} catch (error) {
 				console.error("Failed to fetch data:", error);
-			} finally {
-				setLoading(false);
 			}
 		};
 
-<<<<<<< HEAD
-		fetchData();
-	}, [setNotes, setKanbans]);
-=======
 		fetchKanbans();
 		fetchNotes();
 	}, []);
@@ -129,7 +103,6 @@ const Sidebar = () => {
 			console.error("Failed to add kanban:", error);
 		}
 	};
->>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 
 	const logout = async () => {
 		if (isLoggingOut) return;
@@ -228,22 +201,6 @@ const Sidebar = () => {
 		</li>
 	);
 
-<<<<<<< HEAD
-	const addKanban = async () => {
-		try {
-			const res: AxiosResponse<Kanban> = await kanbanApi.create({
-				title: "New Kanban",
-				main: false,
-			});
-			setKanbans([...kanbans, res.data]);
-			navigate(`/kanban/${res.data.id}`);
-		} catch (err: any) {
-			alert(err.status + ": " + err.statusText);
-		}
-	};
-
-=======
->>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 	const kanban = async () => {
 		try {
 			navigate(`/kanban`);
@@ -252,19 +209,6 @@ const Sidebar = () => {
 		}
 	};
 
-<<<<<<< HEAD
-	const renderKanbanItem = (item: Kanban) => (
-		<li key={item.id} className="pl-8">
-			<div
-				className="flex items-center justify-between my-2 text-black dark:text-white relative"
-				onMouseEnter={() => setHoveredNote(item.id)}
-				onMouseLeave={() => setHoveredNote(null)}
-			>
-				<Link to={`/kanban/${item.id}`} className="flex-grow">
-					📊 {item.title}
-				</Link>
-				{hoveredNote === item.id && (
-=======
 	const handleKanbanClick = (kanbanId: string) => {
 		setSelectedKanbanId(kanbanId);
 	};
@@ -299,21 +243,12 @@ const Sidebar = () => {
 					🗂 {kanban.title}
 				</Link>
 				{hoveredKanban === kanban.id && (
->>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 					<button
 						onClick={(e) => {
 							e.preventDefault();
 							e.stopPropagation();
 							const rect =
 								e.currentTarget.getBoundingClientRect();
-<<<<<<< HEAD
-							setDropdownPosition({
-								x: rect.right,
-								y: rect.bottom,
-							});
-							setOpenDropdown(
-								openDropdown === item.id ? null : item.id
-=======
 							setKanbanDropdownPosition({
 								x: rect.right,
 								y: rect.bottom,
@@ -322,7 +257,6 @@ const Sidebar = () => {
 								openKanbanDropdown === kanban.id
 									? null
 									: kanban.id
->>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 							);
 						}}
 						className="text-gray-600 dark:text-gray-400 ml-2"
@@ -334,13 +268,6 @@ const Sidebar = () => {
 		</li>
 	);
 
-<<<<<<< HEAD
-	if (loading) {
-		return <div>Loading...</div>;
-	}
-
-=======
->>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 	return (
 		<>
 			<div className="w-[320px] h-screen bg-white dark:bg-gray-800 flex flex-col overflow-hidden">
@@ -373,18 +300,9 @@ const Sidebar = () => {
 						</li>
 						<li className="mt-2">
 							<div className="flex items-center justify-between w-full p-4">
-<<<<<<< HEAD
-								<button
-									className="text-gray-600 dark:text-gray-400"
-									onClick={kanban}
-								>
-									<span className="text-sm font-bold text-black dark:text-white ml-1">
-										📊 カンバン
-=======
 								<button onClick={kanban}>
 									<span className="text-sm font-bold text-black dark:text-white ml-1">
 										📋カンバン
->>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 									</span>
 								</button>
 								<button
@@ -395,12 +313,7 @@ const Sidebar = () => {
 								</button>
 							</div>
 						</li>
-<<<<<<< HEAD
-						{(kanbans && kanbans.length > 0) ??
-							kanbans.map(renderKanbanItem)}
-=======
 						{userKanbans.map((kanban) => renderKanbanItem(kanban))}
->>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 						<li className="mt-2">
 							<div className="flex items-center justify-between w-full p-4">
 								<span className="text-sm font-bold text-black dark:text-white ml-1">

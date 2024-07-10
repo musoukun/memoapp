@@ -12,8 +12,6 @@ import authUtils from "./utils/authUtil";
 import Kanban from "./components/pages/Kanban";
 import { KanbanBoard } from "./components/Kanban/KanbanBoard";
 
-import HomeKanban from "./components/pages/HomeKanban";
-
 function App() {
 	const setUser = useSetRecoilState(userStateAtom);
 	const setAuthLoading = useSetRecoilState(authLoadingAtom);

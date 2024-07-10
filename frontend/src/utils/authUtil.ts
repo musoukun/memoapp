@@ -9,16 +9,10 @@ const authUtils = {
 		if (!token) return false;
 		try {
 			const res: AxiosResponse = await authApi.verifyToken();
-<<<<<<< HEAD
-			return res.data.user;
-		} catch (e: any) {
-			if (e.status === 401) {
-=======
 
 			return res.data.user;
 		} catch (e: any) {
 			if (e.status === 400) {
->>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 				localStorage.removeItem("token");
 				localStorage.removeItem("user");
 			}
