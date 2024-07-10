@@ -4,5 +4,8 @@ export default {
 	theme: {
 		extend: {},
 	},
-	plugins: [],
+	plugins: [import("tailwind-scrollbar")],
+	variants: {
+		scrollbar: ["rounded"],
+	},
 };

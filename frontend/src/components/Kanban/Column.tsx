@@ -15,7 +15,7 @@ interface ColumnProps {
 	onDeleteCard: (columnId: string, cardId: string) => void;
 	onDeleteColumn: (columnId: string) => void;
 	onUpdateTitle: (columnId: string, newTitle: string) => void;
-	onSelectCard: (card: KanbanColumn["cards"][0]) => void;
+	onEditCard: (card: KanbanColumn["cards"][0]) => void;
 	onUpdateCard: (
 		columnId: string,
 		cardId: string,
@@ -29,7 +29,7 @@ export const Column: React.FC<ColumnProps> = ({
 	onDeleteCard,
 	onDeleteColumn,
 	onUpdateTitle,
-	onSelectCard,
+	onEditCard,
 	onUpdateCard,
 }) => {
 	const { setNodeRef } = useDroppable({ id: column.id });
@@ -62,7 +62,10 @@ export const Column: React.FC<ColumnProps> = ({
 	};
 
 	return (
-		<div ref={setNodeRef} className="bg-[#161b22] rounded-xl w-[300px] p-4">
+		<div
+			ref={setNodeRef}
+			className="flex-shrink-0 w-[300px] bg-white dark:bg-gray-800 rounded-xl p-4 shadow-md"
+		>
 			<div className="flex justify-between items-center mb-2">
 				{isEditingTitle ? (
 					<input
@@ -70,12 +73,12 @@ export const Column: React.FC<ColumnProps> = ({
 						value={editedTitle}
 						onChange={handleTitleChange}
 						onBlur={handleTitleBlur}
-						className="font-bold text-lg bg-transparent border-b border-gray-300 focus:outline-none focus:border-blue-500 text-white"
+						className="font-bold text-lg bg-transparent border-b border-gray-300 focus:outline-none focus:border-blue-500 dark:text-white"
 						autoFocus
 					/>
 				) : (
 					<h2
-						className="font-bold text-lg cursor-pointer text-white"
+						className="font-bold text-lg cursor-pointer dark:text-white"
 						onDoubleClick={() => setIsEditingTitle(true)}
 					>
 						{column.title}
@@ -84,7 +87,7 @@ export const Column: React.FC<ColumnProps> = ({
 				<div className="flex items-center">
 					<button
 						onClick={handleMenuOpen}
-						className="text-gray-500 hover:text-gray-700 mr-2"
+						className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 mr-2"
 					>
 						<BsThreeDots size={16} />
 					</button>
@@ -95,20 +98,25 @@ export const Column: React.FC<ColumnProps> = ({
 					>
 						<MenuItem onClick={handleDeleteColumn}>削除</MenuItem>
 					</Menu>
-					<span className="text-gray-500">{column.cards.length}</span>
+					<span className="text-gray-500 dark:text-gray-400">
+						{column.cards.length}
+					</span>
 				</div>
 			</div>
 			<SortableContext
 				items={column.cards.map((card) => card.id)}
 				strategy={verticalListSortingStrategy}
 			>
-				<div className="flex-grow overflow-y-auto">
+				<div
+					className="flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800"
+					style={{ maxHeight: "calc(100vh - 200px)" }}
+				>
 					{column.cards.map((card) => (
 						<Card
 							key={card.id}
 							card={card}
 							onDelete={() => onDeleteCard(column.id, card.id)}
-							onClick={() => onSelectCard(card)}
+							onEdit={() => onEditCard(card)}
 							onUpdate={(updatedCard) =>
 								onUpdateCard(column.id, card.id, updatedCard)
 							}
@@ -118,7 +126,7 @@ export const Column: React.FC<ColumnProps> = ({
 			</SortableContext>
 			<button
 				onClick={() => onAddCard(column.id)}
-				className="text-[#8b949e] mt-2"
+				className="mt-2 text-blue-500 hover:text-blue-600 dark:text-blue-400 dark:hover:text-blue-300"
 			>
 				+ カードを追加
 			</button>

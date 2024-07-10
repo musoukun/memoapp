@@ -50,9 +50,9 @@ export const CardDetails: React.FC<CardDetailsProps> = ({
 						Description
 					</label>
 					<textarea
-						value={editedCard.notes || ""}
+						value={editedCard.description || ""}
 						onChange={(e) =>
-							handleInputChange("notes", e.target.value)
+							handleInputChange("description", e.target.value)
 						}
 						className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
 						rows={3}

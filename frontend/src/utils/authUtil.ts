@@ -9,9 +9,12 @@ const authUtils = {
 		if (!token) return false;
 		try {
 			const res: AxiosResponse = await authApi.verifyToken();
-			if (res.status !== 200) return false;
 			return res.data.user;
-		} catch (e) {
+		} catch (e: any) {
+			if (e.status === 401) {
+				localStorage.removeItem("token");
+				localStorage.removeItem("user");
+			}
 			return false;
 		}
 	},

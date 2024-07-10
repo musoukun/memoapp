@@ -10,6 +10,8 @@ import { useRecoilValue, useSetRecoilState } from "recoil";
 import { authLoadingAtom, userStateAtom } from "./atoms/userAtoms";
 import authUtils from "./utils/authUtil";
 
+import HomeKanban from "./components/pages/HomeKanban";
+
 function App() {
 	const setUser = useSetRecoilState(userStateAtom);
 	const setAuthLoading = useSetRecoilState(authLoadingAtom);
@@ -106,6 +108,7 @@ function App() {
 								/>
 							}
 						/>
+						<Route path="/kanban" element={<HomeKanban />} />
 						<Route path="note/:id" element={<Note />} />
 					</Route>
 				</Routes>

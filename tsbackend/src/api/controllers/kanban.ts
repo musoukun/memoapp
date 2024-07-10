@@ -1,48 +1,24 @@
-import { Request, Response } from "express";
 import { PrismaClient } from "@prisma/client";
+import { Request, Response } from "express";
 
 const prisma = new PrismaClient();
 
-const initialKanbanStructure = {
-	title: "New Kanban",
-	columns: [
-		{
-			title: "To Do",
-			order: 0,
-			cards: [
-				{
-					title: "新規タスク",
-					order: 0,
-				},
-			],
-		},
-	],
-};
-
-export const create = async (req: Request, res: Response) => {
+export const createKanban = async (req: Request, res: Response) => {
 	try {
-		// homeエンドポイントからのリクエストかどうかを判定
-		const isHome = req.url === "/home";
-		let home = false;
-		if (isHome) {
-			home = true;
-		}
+		const { title, main } = req.body;
+		const userId = req.user!.id;
+
 		const kanban = await prisma.kanban.create({
 			data: {
-				userId: req.user.id,
-				title: initialKanbanStructure.title,
-				home: home,
+				title,
+				userId,
+				main: main,
 				columns: {
-					create: initialKanbanStructure.columns.map((column) => ({
-						title: column.title,
-						order: column.order,
-						cards: {
-							create: column.cards.map((card) => ({
-								title: card.title,
-								order: card.order,
-							})),
-						},
-					})),
+					create: [
+						{ title: "未着手" },
+						{ title: "進行中" },
+						{ title: "完了" },
+					],
 				},
 			},
 			include: {
@@ -53,17 +29,16 @@ export const create = async (req: Request, res: Response) => {
 				},
 			},
 		});
-		console.log("kanban created:", kanban);
-		return res.status(201).json(kanban);
-	} catch (error) {
-		console.error("Failed to create Kanban:", error);
-		return res.status(500).json({ error: "Failed to create Kanban" });
+
+		res.status(201).json(kanban);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to create Kanban" });
 	}
 };
 
-export const getAll = async (req: Request, res: Response) => {
+export const getUserKanbans = async (req: Request, res: Response) => {
 	try {
-		const userId = req.user.id;
+		const userId = req.user!.id;
 		const kanbans = await prisma.kanban.findMany({
 			where: { userId },
 			include: {
@@ -74,64 +49,97 @@ export const getAll = async (req: Request, res: Response) => {
 				},
 			},
 		});
-		return res.json(kanbans);
-	} catch (error) {
-		console.error("Failed to fetch Kanbans:", error);
-		return res.status(500).json({ error: "Failed to fetch Kanbans" });
-	}
-};
 
-export const home = async (req: Request, res: Response) => {
-	try {
-		const userId = req.user.id;
-		const kanban = await prisma.kanban.findFirst({
-			where: { userId, home: true },
-			include: {
-				columns: {
-					orderBy: { order: "asc" },
-					include: {
-						cards: {
-							orderBy: { order: "asc" },
-						},
-					},
-				},
-			},
-		});
-		if (!kanban) {
-			create(req, res);
-			return;
+		if (!kanbans) {
+			return res.status(200).json({ error: "Kanbans not found" });
 		}
-		return res.json(kanban);
-	} catch (error) {
-		console.error("Failed to fetch Kanban:", error);
-		return res.status(500).json({ error: "Failed to fetch Kanban" });
+
+		res.status(200).json(kanbans);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to fetch Kanbans" });
 	}
 };
 
-export const getOne = async (req: Request, res: Response) => {
+export const getMainKanban = async (req: Request, res: Response) => {
 	try {
-		const { kanbanId } = req.params;
-		const userId = req.user.id;
-		const kanban = await prisma.kanban.findFirst({
-			where: { id: kanbanId, userId },
+		const userId = req.user!.id;
+		// 1件のデータをmapでまわせるように配列として返したい
+
+		const result = await prisma.kanban.findFirst({
+			where: { userId, main: true },
 			include: {
 				columns: {
-					orderBy: { order: "asc" },
 					include: {
-						cards: {
-							orderBy: { order: "asc" },
-						},
+						cards: true,
 					},
 				},
 			},
 		});
+
+		// 結果を配列として返す
+		const mainkanban = result ? [result] : [];
+
+		res.status(200).json(mainkanban);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to fetch Main Kanban" });
+	}
+};
+
+export const getKanban = async (req: Request, res: Response) => {
+	try {
+		const { id } = req.params;
+		const userId = req.user!.id;
+
+		const kanban = await prisma.kanban.findUnique({
+			where: { id, userId },
+			include: {
+				columns: {
+					include: {
+						cards: true,
+					},
+				},
+			},
+		});
+
 		if (!kanban) {
 			return res.status(404).json({ error: "Kanban not found" });
 		}
-		return res.json(kanban);
-	} catch (error) {
-		console.error("Failed to fetch Kanban:", error);
-		return res.status(500).json({ error: "Failed to fetch Kanban" });
+
+		res.status(200).json(kanban);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to fetch Kanban" });
+	}
+};
+
+export const updateKanban = async (req: Request, res: Response) => {
+	try {
+		const { id } = req.params;
+		const { title } = req.body;
+		const userId = req.user!.id;
+
+		const updatedKanban = await prisma.kanban.update({
+			where: { id, userId },
+			data: { title },
+		});
+
+		res.status(200).json(updatedKanban);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to update Kanban" });
+	}
+};
+
+export const deleteKanban = async (req: Request, res: Response) => {
+	try {
+		const { id } = req.params;
+		const userId = req.user!.id;
+
+		await prisma.kanban.delete({
+			where: { id, userId },
+		});
+
+		res.status(200).json({ message: "Kanban deleted successfully" });
+	} catch (err) {
+		res.status(500).json({ error: "Failed to delete Kanban" });
 	}
 };
 
@@ -139,295 +147,115 @@ export const addColumn = async (req: Request, res: Response) => {
 	try {
 		const { kanbanId } = req.params;
 		const { title } = req.body;
-		const userId = req.user.id;
-
-		const kanban = await prisma.kanban.findFirst({
-			where: { id: kanbanId, userId },
-			include: {
-				columns: {
-					orderBy: { order: "asc" },
-					include: {
-						cards: {
-							orderBy: { order: "asc" },
-						},
-					},
-				},
-			},
-		});
-		if (!kanban) {
-			return res.status(404).json({ error: "Kanban not found" });
-		}
 
 		const newColumn = await prisma.kanbanColumn.create({
 			data: {
-				title: title,
-				order: kanban.columns.length,
+				title,
 				kanbanId,
 			},
 		});
 
-		return res.status(201).json(newColumn);
-	} catch (error) {
-		console.error("Failed to add column:", error);
-		return res.status(500).json({ error: "Failed to add column" });
-	}
-};
-
-export const deleteColumn = async (req: Request, res: Response) => {
-	try {
-		const { kanbanId, columnId } = req.params;
-		const userId = req.user.id;
-
-		const kanban = await prisma.kanban.findFirst({
-			where: { id: kanbanId, userId },
-			include: {
-				columns: {
-					orderBy: { order: "asc" },
-					include: {
-						cards: {
-							orderBy: { order: "asc" },
-						},
-					},
-				},
-			},
-		});
-		if (!kanban) {
-			return res.status(404).json({ error: "Kanban not found" });
-		}
-
-		await prisma.kanbanColumn.delete({
-			where: { id: columnId },
-		});
-
-		return res.status(204).end();
-	} catch (error) {
-		console.error("Failed to delete column:", error);
-		return res.status(500).json({ error: "Failed to delete column" });
-	}
-};
-
-export const addCard = async (req: Request, res: Response) => {
-	try {
-		const { kanbanId, columnId } = req.params;
-		const { title } = req.body;
-		const userId = req.user.id;
-
-		const kanban = await prisma.kanban.findFirst({
-			where: { id: kanbanId, userId },
-			include: {
-				columns: {
-					orderBy: { order: "asc" },
-					include: {
-						cards: {
-							orderBy: { order: "asc" },
-						},
-					},
-				},
-			},
-		});
-		if (!kanban) {
-			return res.status(404).json({ error: "Kanban not found" });
-		}
-
-		const newCard = await prisma.kanbanCard.create({
-			data: {
-				title,
-				order: kanban.columns.find((col) => col.id === columnId)?.cards
-					.length,
-				columnId,
-			},
-		});
-
-		return res.status(201).json(newCard);
-	} catch (error) {
-		console.error("Failed to add card:", error);
-		return res.status(500).json({ error: "Failed to add card" });
-	}
-};
-
-export const deleteCard = async (req: Request, res: Response) => {
-	try {
-		const { kanbanId, columnId, cardId } = req.params;
-		const userId = req.user.id;
-
-		const kanban = await prisma.kanban.findFirst({
-			where: { id: kanbanId, userId },
-			include: {
-				columns: {
-					orderBy: { order: "asc" },
-					include: {
-						cards: {
-							orderBy: { order: "asc" },
-						},
-					},
-				},
-			},
-		});
-		if (!kanban) {
-			return res.status(404).json({ error: "Kanban not found" });
-		}
-
-		await prisma.kanbanCard.delete({
-			where: { id: cardId },
-		});
-
-		return res.status(204).end();
-	} catch (error) {
-		console.error("Failed to delete card:", error);
-		return res.status(500).json({ error: "Failed to delete card" });
-	}
-};
-
-export const updateCard = async (req: Request, res: Response) => {
-	try {
-		const { kanbanId, columnId, cardId } = req.params;
-		const { title } = req.body;
-		const userId = req.user.id;
-
-		const kanban = await prisma.kanban.findFirst({
-			where: { id: kanbanId, userId },
-			include: {
-				columns: {
-					orderBy: { order: "asc" },
-					include: {
-						cards: {
-							orderBy: { order: "asc" },
-						},
-					},
-				},
-			},
-		});
-		if (!kanban) {
-			return res.status(404).json({ error: "Kanban not found" });
-		}
-
-		const updatedCard = await prisma.kanbanCard.update({
-			where: { id: cardId },
-			data: { title },
-		});
-
-		return res.json(updatedCard);
-	} catch (error) {
-		console.error("Failed to update card:", error);
-		return res.status(500).json({ error: "Failed to update card" });
-	}
-};
-
-export const moveCard = async (req: Request, res: Response) => {
-	try {
-		const { kanbanId, cardId } = req.params;
-		const { fromColumnId, toColumnId } = req.body;
-		const newIndex = req.body.newIndex;
-		const userId = req.user.id;
-
-		// 純粋にtoColumnIdと、newIndexを受け取って更新する処理に修正
-		const kanban = await prisma.kanban.findFirst({
-			where: { id: kanbanId, userId },
-			include: {
-				columns: {
-					orderBy: { order: "asc" },
-					include: {
-						cards: {
-							orderBy: { order: "asc" },
-						},
-					},
-				},
-			},
-		});
-		if (!kanban) {
-			return res.status(404).json({ error: "Kanban not found" });
-		}
-
-		const fromColumn = kanban.columns.find(
-			(col) => col.id === fromColumnId
-		);
-		const toColumn = kanban.columns.find((col) => col.id === toColumnId);
-		if (!fromColumn || !toColumn) {
-			return res.status(404).json({ error: "Column not found" });
-		}
-
-		const card = fromColumn.cards.find((card) => card.id === cardId);
-		if (!card) {
-			return res.status(404).json({ error: "Card not found" });
-		}
-
-		// カードを移動
-		const updatedColumns = kanban.columns.map((column) => {
-			// 移動元のカードを削除
-			if (column.id === fromColumnId) {
-				const updatedCards = column.cards.filter(
-					(card) => card.id !== cardId
-				);
-				return { ...column, cards: updatedCards };
-			}
-			// 移動先のカードを追加
-			if (column.id === toColumnId) {
-				const updatedCards = [...column.cards];
-				updatedCards.splice(newIndex, 0, card);
-				return { ...column, cards: updatedCards };
-			}
-			return column;
-		});
-
-		// カードの順番を更新
-		await prisma.kanbanCard.update({
-			where: { id: cardId },
-			data: { columnId: toColumnId, order: newIndex },
-		});
-
-		return res.json(updatedColumns);
-	} catch (error) {
-		console.error("Failed to move card:", error);
-		return res.status(500).json({ error: "Failed to move card" });
-	}
-};
-
-export const deleteKanban = async (req: Request, res: Response) => {
-	try {
-		const { kanbanId } = req.params;
-		const userId = req.user.id;
-
-		await prisma.kanban.delete({
-			where: { id: kanbanId, userId },
-		});
-
-		return res.status(204).end();
-	} catch (error) {
-		console.error("Failed to delete Kanban:", error);
-		return res.status(500).json({ error: "Failed to delete Kanban" });
+		res.status(201).json(newColumn);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to add column" });
 	}
 };
 
 export const updateColumn = async (req: Request, res: Response) => {
 	try {
-		const { kanbanId, columnId } = req.params;
+		const { id } = req.params;
 		const { title } = req.body;
-		const userId = req.user.id;
-
-		const kanban = await prisma.kanban.findFirst({
-			where: { id: kanbanId, userId },
-			include: {
-				columns: true,
-			},
-		});
-
-		if (!kanban) {
-			return res.status(404).json({ error: "Kanban not found" });
-		}
-
-		const column = kanban.columns.find((col) => col.id === columnId);
-		if (!column) {
-			return res.status(404).json({ error: "Column not found" });
-		}
 
 		const updatedColumn = await prisma.kanbanColumn.update({
-			where: { id: columnId },
+			where: { id },
 			data: { title },
 		});
 
-		return res.json(updatedColumn);
-	} catch (error) {
-		console.error("Failed to update column:", error);
-		return res.status(500).json({ error: "Failed to update column" });
+		res.status(200).json(updatedColumn);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to update column" });
+	}
+};
+
+export const deleteColumn = async (req: Request, res: Response) => {
+	try {
+		const { id } = req.params;
+
+		await prisma.kanbanColumn.delete({
+			where: { id },
+		});
+
+		res.status(200).json({ message: "Column deleted successfully" });
+	} catch (err) {
+		res.status(500).json({ error: "Failed to delete column" });
+	}
+};
+
+export const addCard = async (req: Request, res: Response) => {
+	try {
+		const { columnId } = req.params;
+		const { title, description, status } = req.body;
+
+		const newCard = await prisma.kanbanCard.create({
+			data: {
+				title,
+				description: description ?? "", // descriptionが提供されていない場合、空文字列をデフォルトとする
+				status: status ?? null, // statusが提供されていない場合、nullをデフォルトとする
+				columnId,
+			},
+		});
+
+		res.status(201).json(newCard);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to add card" });
+	}
+};
+
+export const updateCard = async (req: Request, res: Response) => {
+	try {
+		const { id } = req.params;
+		const { title, description, status } = req.body;
+
+		const updatedCard = await prisma.kanbanCard.update({
+			where: { id },
+			data: {
+				title,
+				description,
+				status, // statusが提供されていない場合、そのまま省略される
+			},
+		});
+
+		res.status(200).json(updatedCard);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to update card" });
+	}
+};
+
+export const deleteCard = async (req: Request, res: Response) => {
+	try {
+		const { id } = req.params;
+
+		await prisma.kanbanCard.delete({
+			where: { id },
+		});
+
+		res.status(200).json({ message: "Card deleted successfully" });
+	} catch (err) {
+		res.status(500).json({ error: "Failed to delete card" });
+	}
+};
+
+export const moveCard = async (req: Request, res: Response) => {
+	try {
+		const { cardId, newColumnId } = req.body;
+
+		const updatedCard = await prisma.kanbanCard.update({
+			where: { id: cardId },
+			data: { columnId: newColumnId },
+		});
+
+		res.status(200).json(updatedCard);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to move card" });
 	}
 };

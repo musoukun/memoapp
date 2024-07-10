@@ -3,7 +3,7 @@ import DashboardTitle from "../dashboard/DashboardTitle";
 import RecentAccess from "../dashboard/RecentAccess";
 import WeeklyEvents from "../dashboard/WeeklyEvents";
 import MyTasks from "../dashboard/MyTasks";
-import { KanbanBoard } from "../Kanban/KanbanBoard";
+// import { KanbanBoard } from "../Kanban/KanbanBoard";
 
 interface HomeProps {
 	title: string;
@@ -24,7 +24,7 @@ const Home: React.FC<HomeProps> = ({ title, events, tasks }) => {
 	return (
 		<div className="dark:bg-gray-800 min-h-screen p-6">
 			<DashboardTitle title={title} />
-			<KanbanBoard />
+			{/* <KanbanBoard />	 */}
 			<RecentAccess />
 			<WeeklyEvents events={events} />
 			<MyTasks tasks={tasks} />

@@ -1,87 +1,31 @@
-import { Router } from "express";
+import express from "express";
 import * as kanbanController from "../controllers/kanban";
-import { param, body } from "express-validator";
-import * as validation from "../middleware/validation";
 import { verifyToken } from "../middleware/tokenHandler";
 
-const router = Router();
+const router = express.Router();
 
 router.use(verifyToken);
+// Kanban routes
+router.get("/test", (req, res) => {
+	res.status(200).json({ message: "Kanban API is working" });
+});
+router.post("/", kanbanController.createKanban);
+router.get("/main", kanbanController.getMainKanban);
+router.get("/userkanbans", kanbanController.getUserKanbans);
+// router.get("/", kanbanController.getAllKanbans);
+router.get("/:id", kanbanController.getKanban);
+router.put("/:id", kanbanController.updateKanban);
+router.delete("/:id", kanbanController.deleteKanban);
 
-router.post("/", kanbanController.create);
-router.get("/", kanbanController.getAll);
-router.get("/home", kanbanController.home);
+// Column routes
+router.post("/:kanbanId/columns", kanbanController.addColumn);
+router.put("/columns/:id", kanbanController.updateColumn);
+router.delete("/columns/:id", kanbanController.deleteColumn);
 
-router.get(
-	"/:kanbanId",
-	param("kanbanId").custom(validation.isObjectId),
-	kanbanController.getOne
-);
-router.delete(
-	"/:kanbanId",
-	param("kanbanId").custom(validation.isObjectId),
-	kanbanController.deleteKanban
-);
-
-router.post(
-	"/:kanbanId/column",
-	param("kanbanId").custom(validation.isObjectId),
-	kanbanController.addColumn
-);
-router.delete(
-	"/:kanbanId/column/:columnId",
-	[
-		param("kanbanId").custom(validation.isObjectId),
-		param("columnId").custom(validation.isObjectId),
-	],
-	kanbanController.deleteColumn
-);
-
-router.post(
-	"/:kanbanId/column/:columnId/card",
-	[
-		param("kanbanId").custom(validation.isObjectId),
-		param("columnId").custom(validation.isObjectId),
-	],
-	kanbanController.addCard
-);
-router.delete(
-	"/:kanbanId/column/:columnId/card/:cardId",
-	[
-		param("kanbanId").custom(validation.isObjectId),
-		param("columnId").custom(validation.isObjectId),
-		param("cardId").custom(validation.isObjectId),
-	],
-	kanbanController.deleteCard
-);
-router.put(
-	"/:kanbanId/column/:columnId/card/:cardId",
-	[
-		param("kanbanId").custom(validation.isObjectId),
-		param("columnId").custom(validation.isObjectId),
-		param("cardId").custom(validation.isObjectId),
-	],
-	kanbanController.updateCard
-);
-router.put(
-	"/:kanbanId/move-card/:cardId",
-	[
-		param("kanbanId").custom(validation.isObjectId),
-		param("cardId").custom(validation.isObjectId),
-		body("fromColumnId").custom(validation.isObjectId),
-		body("toColumnId").custom(validation.isObjectId),
-	],
-	kanbanController.moveCard
-);
-router.put(
-	"/:kanbanId/column/:columnId",
-	[
-		param("kanbanId").custom(validation.isObjectId),
-		param("columnId").custom(validation.isObjectId),
-		body("title").optional().isString(),
-		// 必要に応じて他のバリデーションを追加
-	],
-	kanbanController.updateColumn
-);
+// Card routes
+router.post("/columns/:columnId/cards", kanbanController.addCard);
+router.put("/cards/:id", kanbanController.updateCard);
+router.delete("/cards/:id", kanbanController.deleteCard);
+router.post("/cards/move", kanbanController.moveCard);
 
 export default router;
