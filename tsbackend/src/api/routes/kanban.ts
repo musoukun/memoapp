@@ -11,7 +11,7 @@ router.get("/test", (req, res) => {
 });
 router.post("/", kanbanController.createKanban);
 router.get("/main", kanbanController.getMainKanban);
-router.get("/userkanbans", kanbanController.getUserKanbans);
+router.get("/userkanbans", kanbanController.getKanbans);
 // router.get("/", kanbanController.getAllKanbans);
 router.get("/:id", kanbanController.getKanban);
 router.put("/:id", kanbanController.updateKanban);
