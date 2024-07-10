@@ -17,15 +17,22 @@ router.get("/:id", kanbanController.getKanban);
 router.put("/:id", kanbanController.updateKanban);
 router.delete("/:id", kanbanController.deleteKanban);
 
-// Column routes
-router.post("/:kanbanId/columns", kanbanController.addColumn);
-router.put("/columns/:id", kanbanController.updateColumn);
-router.delete("/columns/:id", kanbanController.deleteColumn);
+// カンバンの作成
+router.post("/", kanbanController.createKanban);
 
-// Card routes
-router.post("/columns/:columnId/cards", kanbanController.addCard);
-router.put("/cards/:id", kanbanController.updateCard);
-router.delete("/cards/:id", kanbanController.deleteCard);
-router.post("/cards/move", kanbanController.moveCard);
+// すべてのカンバンの取得
+router.get("/", kanbanController.getKanbans);
+
+// すべてのカンバンの取得
+router.get("/main", kanbanController.getMainKanban);
+
+// 特定のカンバンの取得
+router.get("/:id", kanbanController.getKanban);
+
+// カンバンの更新
+router.put("/:id", kanbanController.updateKanban);
+
+// カンバンの削除
+router.delete("/:id", kanbanController.deleteKanban);
 
 export default router;

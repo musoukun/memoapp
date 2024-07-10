@@ -9,6 +9,8 @@ import { useEffect } from "react";
 import { useRecoilValue, useSetRecoilState } from "recoil";
 import { authLoadingAtom, userStateAtom } from "./atoms/userAtoms";
 import authUtils from "./utils/authUtil";
+import Kanban from "./components/pages/Kanban";
+import { KanbanBoard } from "./components/Kanban/KanbanBoard";
 
 import HomeKanban from "./components/pages/HomeKanban";
 
@@ -108,7 +110,11 @@ function App() {
 								/>
 							}
 						/>
-						<Route path="/kanban" element={<HomeKanban />} />
+						<Route path="kanban/" element={<Kanban />} />
+						<Route
+							path="kanban/:id"
+							element={<KanbanBoard height={""} />}
+						/>
 						<Route path="note/:id" element={<Note />} />
 					</Route>
 				</Routes>

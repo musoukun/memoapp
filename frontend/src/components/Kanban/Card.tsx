@@ -62,14 +62,22 @@ export const Card: React.FC<CardProps> = ({
 		handleMenuClose();
 	};
 
+<<<<<<< HEAD
 	const handleEditClick = (event: React.MouseEvent) => {
 		event.stopPropagation();
 		onEdit();
 	};
 
+=======
+>>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 	const handleDoubleClick = (event: React.MouseEvent) => {
 		event.stopPropagation();
 		setIsEditingTitle(true);
+	};
+
+	const handleEditClick = (event: React.MouseEvent) => {
+		event.stopPropagation();
+		onClick();
 	};
 
 	return (
@@ -97,13 +105,21 @@ export const Card: React.FC<CardProps> = ({
 			)}
 			<div className="absolute top-2 right-2 flex items-center opacity-0 group-hover:opacity-100 transition-opacity">
 				<button
+<<<<<<< HEAD
 					className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 mr-2"
+=======
+					className="text-gray-400 hover:text-gray-600 mr-2"
+>>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 					onClick={handleEditClick}
 				>
 					<BsPencil size={16} />
 				</button>
 				<button
+<<<<<<< HEAD
 					className="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300"
+=======
+					className="text-gray-400 hover:text-gray-600"
+>>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 					onClick={handleMenuOpen}
 				>
 					<BsThreeDots size={16} />

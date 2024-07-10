@@ -5,12 +5,17 @@ const prisma = new PrismaClient();
 
 export const createKanban = async (req: Request, res: Response) => {
 	try {
+<<<<<<< HEAD
 		const { title, main } = req.body;
+=======
+		const { title, columns } = req.body;
+>>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 		const userId = req.user!.id;
 
 		const kanban = await prisma.kanban.create({
 			data: {
 				title,
+<<<<<<< HEAD
 				userId,
 				main: main,
 				columns: {
@@ -27,6 +32,10 @@ export const createKanban = async (req: Request, res: Response) => {
 						cards: true,
 					},
 				},
+=======
+				columns: columns,
+				userId,
+>>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 			},
 		});
 
@@ -36,19 +45,17 @@ export const createKanban = async (req: Request, res: Response) => {
 	}
 };
 
+<<<<<<< HEAD
 export const getUserKanbans = async (req: Request, res: Response) => {
+=======
+export const getKanbans = async (req: Request, res: Response) => {
+>>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 	try {
 		const userId = req.user!.id;
 		const kanbans = await prisma.kanban.findMany({
 			where: { userId },
-			include: {
-				columns: {
-					include: {
-						cards: true,
-					},
-				},
-			},
 		});
+<<<<<<< HEAD
 
 		if (!kanbans) {
 			return res.status(200).json({ error: "Kanbans not found" });
@@ -257,5 +264,84 @@ export const moveCard = async (req: Request, res: Response) => {
 		res.status(200).json(updatedCard);
 	} catch (err) {
 		res.status(500).json({ error: "Failed to move card" });
+=======
+		res.status(200).json(kanbans);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to fetch Kanbans" });
+	}
+};
+
+export const getKanban = async (req: Request, res: Response) => {
+	try {
+		const { id } = req.params;
+		const userId = req.user!.id;
+
+		const kanban = await prisma.kanban.findUnique({
+			where: { id, userId },
+		});
+
+		if (!kanban) {
+			return res.status(404).json({ error: "Kanban not found" });
+		}
+
+		res.status(200).json(kanban);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to fetch Kanban" });
+	}
+};
+
+export const getMainKanban = async (req: Request, res: Response) => {
+	try {
+		// const { id } = req.params;
+		const userId = req.user!.id;
+
+		const kanban = await prisma.kanban.findFirst({
+			where: { userId },
+			orderBy: { createdAt: "asc" }, // 一番古いカンバンを取得
+		});
+
+		if (!kanban) {
+			return res.status(404).json({ error: "Kanban not found" });
+		}
+
+		res.status(200).json(kanban);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to fetch Kanban" });
+	}
+};
+
+export const updateKanban = async (req: Request, res: Response) => {
+	try {
+		const { id } = req.params;
+		const { title, data } = req.body;
+		const userId = req.user!.id;
+
+		const updatedKanban = await prisma.kanban.update({
+			where: { id, userId },
+			data: {
+				title,
+				columns: data,
+			},
+		});
+
+		res.status(200).json(updatedKanban);
+	} catch (err) {
+		res.status(500).json({ error: "Failed to update Kanban" });
+	}
+};
+
+export const deleteKanban = async (req: Request, res: Response) => {
+	try {
+		const { id } = req.params;
+		const userId = req.user!.id;
+
+		await prisma.kanban.delete({
+			where: { id, userId },
+		});
+
+		res.status(200).json({ message: "Kanban deleted successfully" });
+	} catch (err) {
+		res.status(500).json({ error: "Failed to delete Kanban" });
+>>>>>>> 32d9c58 (カンバン機能の立て直し、設計と実装をすべてやり直した。残りは永続化のみ)
 	}
 };
