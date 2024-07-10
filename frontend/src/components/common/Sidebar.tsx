@@ -250,7 +250,7 @@ const Sidebar = () => {
 		>
 			<div className="flex items-center justify-between my-2 text-black dark:text-white relative">
 				<Link to={`/kanban/${kanban.id}`} className="flex-grow">
-					🗂 {kanban.title}
+					{kanban.title}
 				</Link>
 				{hoveredKanban === kanban.id && (
 					<button

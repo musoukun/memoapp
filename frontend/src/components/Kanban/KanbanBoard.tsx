@@ -16,6 +16,8 @@ import { Kanban, KanbanCard, KanbanColumn } from "../../types/kanban";
 import { createNewCard, createNewColumn } from "../../utils/KanbanUtils";
 import { CardDetails } from "./CardDetails";
 import { Column } from "./Column";
+import { useSetRecoilState } from "recoil";
+import { userKanbansAtom } from "../../atoms/kanbanAtom";
 
 interface KanbanBoardProps {
 	initialKanban?: Kanban;
@@ -27,9 +29,12 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 	height,
 }) => {
 	const { id } = useParams<{ id: string }>();
+	const setKanbans = useSetRecoilState(userKanbansAtom);
 	const { kanban, setKanban, updateKanban, updateColumn, updateCard, error } =
 		useKanbanState(initialKanban || null, id!);
 	const [selectedCard, setSelectedCard] = useState<KanbanCard | null>(null);
+	const [isEditingTitle, setIsEditingTitle] = useState(false);
+	const [editedTitle, setEditedTitle] = useState(kanban?.title || "");
 
 	const sensors = useSensors(
 		useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
@@ -122,6 +127,28 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 		[updateColumn]
 	);
 
+	const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+		setEditedTitle(e.target.value);
+	};
+
+	const handleTitleBlur = () => {
+		setIsEditingTitle(false);
+		if (editedTitle.trim() !== kanban?.title) {
+			updateKanban((prevKanban) => ({
+				...prevKanban,
+				title: editedTitle.trim(),
+			}));
+			// Update the kanbans state in Recoil
+			setKanbans((prevKanbans) =>
+				prevKanbans.map((k) =>
+					k.id === kanban?.id
+						? { ...k, title: editedTitle.trim() }
+						: k
+				)
+			);
+		}
+	};
+
 	if (!kanban) {
 		return <div>Loading...</div>;
 	}
@@ -133,8 +160,29 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 			onDragEnd={handleDragEnd}
 			onDragOver={handleDragOver}
 		>
-			<div className={`${height} flex p-4 dark:bg-gray-800 min-h-screen`}>
+			<div
+				className={`${height} flex flex-col p-4 bg-gray-100 dark:bg-gray-900 min-h-screen rounded-xl`}
+			>
 				{error && <div className="text-red-500">{error}</div>}
+				<div className="mb-4">
+					{isEditingTitle ? (
+						<input
+							type="text"
+							value={editedTitle}
+							onChange={handleTitleChange}
+							onBlur={handleTitleBlur}
+							className="text-2xl font-bold bg-transparent border-b border-gray-300 focus:outline-none focus:border-blue-500 dark:text-white"
+							autoFocus
+						/>
+					) : (
+						<h1
+							className="text-2xl font-bold cursor-pointer dark:text-white"
+							onDoubleClick={() => setIsEditingTitle(true)}
+						>
+							{kanban.title}
+						</h1>
+					)}
+				</div>
 				<div className="flex-grow overflow-x-auto">
 					<div className="flex gap-4">
 						{kanban.columns.map((column: KanbanColumn) => (
