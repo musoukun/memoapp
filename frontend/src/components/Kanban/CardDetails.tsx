@@ -30,10 +30,12 @@ export const CardDetails: React.FC<CardDetailsProps> = ({
 
 	return (
 		<div className="fixed top-0 right-0 w-[400px] h-full bg-[#161b22] p-4 overflow-y-auto">
-			<h2 className="text-xl font-bold mb-4">Edit Card</h2>
+			<h2 className="text-xl font-bold mb-4 dark:text-white">
+				Edit Card
+			</h2>
 			<form onSubmit={handleSubmit}>
 				<div className="mb-4">
-					<label className="block text-sm font-medium text-gray-700">
+					<label className="block text-sm font-medium dark:text-white text-gray-700">
 						Title
 					</label>
 					<input
@@ -42,11 +44,11 @@ export const CardDetails: React.FC<CardDetailsProps> = ({
 						onChange={(e) =>
 							handleInputChange("title", e.target.value)
 						}
-						className="text-xl font-bold text-[#c9d1d9]"
+						className="text-xl  rounded-md text-[#c9d1d9] dark:text-white dark:bg-gray-700"
 					/>
 				</div>
 				<div className="mb-4">
-					<label className="block text-sm font-medium text-gray-700">
+					<label className="block text-sm font-medium text-gray-700 dark:text-white">
 						Description
 					</label>
 					<textarea
@@ -54,12 +56,12 @@ export const CardDetails: React.FC<CardDetailsProps> = ({
 						onChange={(e) =>
 							handleInputChange("description", e.target.value)
 						}
-						className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+						className="mt-1 block w-full rounded-md dark:text-white dark:bg-gray-700 border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
 						rows={3}
 					/>
 				</div>
 				<div className="mb-4">
-					<label className="block text-sm font-medium text-gray-700">
+					<label className="block text-sm font-medium text-gray-700 dark:text-white">
 						Status
 					</label>
 					<select
@@ -67,7 +69,7 @@ export const CardDetails: React.FC<CardDetailsProps> = ({
 						onChange={(e) =>
 							handleInputChange("status", e.target.value)
 						}
-						className="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
+						className="mt-1 block w-full rounded-md dark:bg-gray-700 dark:text-white border-gray-300 shadow-sm focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50"
 					>
 						<option value="">Select status</option>
 						<option value="To Do">To Do</option>
@@ -79,7 +81,7 @@ export const CardDetails: React.FC<CardDetailsProps> = ({
 					<button
 						type="button"
 						onClick={onClose}
-						className="mr-2 px-4 py-2 border border-gray-300 rounded-md text-sm font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+						className="mr-2 px-4 py-2 border  border-gray-300 rounded-md text-sm font-medium dark:bg-gray-700 dark:text-gray-100 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
 					>
 						Cancel
 					</button>
