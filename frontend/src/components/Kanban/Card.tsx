@@ -12,7 +12,12 @@ interface CardProps {
 	onUpdate: (updatedCard: KanbanCard) => void;
 }
 
-export const Card: React.FC<CardProps> = ({ card, onDelete, onUpdate }) => {
+export const Card: React.FC<CardProps> = ({
+	card,
+	onDelete,
+	onUpdate,
+	onEdit,
+}) => {
 	const { attributes, listeners, setNodeRef, transform, transition } =
 		useSortable({ id: card.id });
 	const [isEditingTitle, setIsEditingTitle] = useState(false);
@@ -64,6 +69,7 @@ export const Card: React.FC<CardProps> = ({ card, onDelete, onUpdate }) => {
 
 	const handleEditClick = (event: React.MouseEvent) => {
 		event.stopPropagation();
+		onEdit();
 	};
 
 	return (

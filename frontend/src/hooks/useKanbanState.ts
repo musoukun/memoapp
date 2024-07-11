@@ -21,7 +21,17 @@ export const useKanbanState = (
 		try {
 			await kanbanApi.update(kanbanId, {
 				title: kanbanRef.current.title,
-				data: kanbanRef.current.columns,
+				icon: kanbanRef.current.icon || "",
+				data: kanbanRef.current.columns.map((column) => ({
+					id: column.id,
+					title: column.title,
+					cards: column.cards.map((card) => ({
+						id: card.id,
+						title: card.title,
+						description: card.description || "",
+						status: card.status || "",
+					})),
+				})),
 			});
 		} catch (err) {
 			setError("Failed to save Kanban. Please try again.");
@@ -76,5 +86,12 @@ export const useKanbanState = (
 		[updateColumn]
 	);
 
-	return { kanban, setKanban, updateKanban, updateColumn, updateCard, error };
+	return {
+		kanban,
+		setKanban,
+		updateKanban,
+		updateColumn,
+		updateCard,
+		error,
+	};
 };

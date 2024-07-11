@@ -111,17 +111,25 @@ export const Column: React.FC<ColumnProps> = ({
 					className="flex-grow overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-gray-200 dark:scrollbar-thumb-gray-600 dark:scrollbar-track-gray-800"
 					style={{ maxHeight: "calc(100vh - 200px)" }}
 				>
-					{column.cards.map((card) => (
-						<Card
-							key={card.id}
-							card={card}
-							onDelete={() => onDeleteCard(column.id, card.id)}
-							onEdit={() => onEditCard(card)}
-							onUpdate={(updatedCard) =>
-								onUpdateCard(column.id, card.id, updatedCard)
-							}
-						/>
-					))}
+					{column.cards.map((card) =>
+						card && card.id ? (
+							<Card
+								key={card.id}
+								card={card}
+								onDelete={() =>
+									onDeleteCard(column.id, card.id)
+								}
+								onEdit={() => onEditCard(card)}
+								onUpdate={(updatedCard) =>
+									onUpdateCard(
+										column.id,
+										card.id,
+										updatedCard
+									)
+								}
+							/>
+						) : null
+					)}
 				</div>
 			</SortableContext>
 			<button

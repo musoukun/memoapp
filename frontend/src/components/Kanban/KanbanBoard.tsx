@@ -18,6 +18,7 @@ import { CardDetails } from "./CardDetails";
 import { Column } from "./Column";
 import { useSetRecoilState } from "recoil";
 import { userKanbansAtom } from "../../atoms/kanbanAtom";
+import EmojiPicker from "../common/EmojiPicker";
 
 interface KanbanBoardProps {
 	initialKanban?: Kanban;
@@ -59,9 +60,21 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 		}
 	}, [id, setKanban]);
 
+	const fetchKanbans = useCallback(async () => {
+		if (id) {
+			try {
+				const response = await kanbanApi.getKanbans();
+				setKanbans(response.data);
+			} catch (err) {
+				console.log("Failed to fetch Kanban:", err);
+			}
+		}
+	}, [id, setKanban]);
+
 	useEffect(() => {
 		if (!initialKanban) {
 			fetchKanban();
+			fetchKanbans();
 		}
 	}, [fetchKanban, initialKanban]);
 
@@ -149,6 +162,22 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 		}
 	};
 
+	const handleIconChange = useCallback(
+		(newIcon: string) => {
+			updateKanban((prevKanban) => ({
+				...prevKanban,
+				icon: newIcon,
+			}));
+			// Recoilの状態も更新
+			setKanbans((prevKanbans) =>
+				prevKanbans.map((k) =>
+					k.id === kanban?.id ? { ...k, icon: newIcon } : k
+				)
+			);
+		},
+		[updateKanban, setKanbans, kanban]
+	);
+
 	if (!kanban) {
 		return <div>Loading...</div>;
 	}
@@ -165,6 +194,14 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 			>
 				{error && <div className="text-red-500">{error}</div>}
 				<div className="mb-4">
+					<div className="p-1 h-8 mb-2">
+						<EmojiPicker
+							icon={kanban.icon || "📜"}
+							size={24}
+							//default値を設定する方法→
+							onChange={handleIconChange}
+						/>
+					</div>
 					{isEditingTitle ? (
 						<input
 							type="text"
@@ -210,6 +247,10 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 						card={selectedCard}
 						onClose={() => setSelectedCard(null)}
 						onUpdate={(updatedCard) => {
+							console.log(
+								"Updated card before processing:",
+								updatedCard
+							);
 							const column = kanban.columns.find((col) =>
 								col.cards.some((c) => c.id === selectedCard.id)
 							);
@@ -217,9 +258,13 @@ export const KanbanBoard: React.FC<KanbanBoardProps> = ({
 								handleUpdateCard(
 									column.id,
 									selectedCard.id,
-									updatedCard as unknown as KanbanCard
+									updatedCard
 								);
 							}
+							console.log(
+								"Updated card after processing:",
+								updatedCard
+							);
 						}}
 					/>
 				)}

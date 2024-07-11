@@ -1,10 +1,10 @@
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { KanbanCard } from "../../types/kanban";
 
 interface CardDetailsProps {
 	card: KanbanCard;
 	onClose: () => void;
-	onUpdate: (cardId: string, data: Partial<KanbanCard>) => void;
+	onUpdate: (updatedCard: KanbanCard) => void; // この型を変更
 }
 
 export const CardDetails: React.FC<CardDetailsProps> = ({
@@ -24,7 +24,7 @@ export const CardDetails: React.FC<CardDetailsProps> = ({
 
 	const handleSubmit = (e: React.FormEvent) => {
 		e.preventDefault();
-		onUpdate(card.id, editedCard);
+		onUpdate(editedCard); // カード全体を渡す
 		onClose();
 	};
 

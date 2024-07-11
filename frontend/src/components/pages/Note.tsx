@@ -16,8 +16,14 @@ import { useNoteUpdate } from "../../hooks/useNoteUpdate";
 import EmojiPicker from "../common/EmojiPicker";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faStar, faTrashAlt } from "@fortawesome/free-solid-svg-icons";
-import { BlockNoteEditor, PartialBlock } from "@blocknote/core";
+import {
+	BlockNoteEditor,
+	BlockNoteSchema,
+	PartialBlock,
+	defaultBlockSpecs,
+} from "@blocknote/core";
 import { customTheme } from "../blocknoteComponent/BlocknoteTheme";
+import { CodeBlock } from "@defensestation/blocknote-code";
 
 const Note: React.FC = () => {
 	// ナビゲーション関連のフック
@@ -104,6 +110,13 @@ const Note: React.FC = () => {
 		}
 	}, [id]);
 
+	const schema = BlockNoteSchema.create({
+		blockSpecs: {
+			...defaultBlockSpecs,
+			procode: CodeBlock,
+		},
+	});
+
 	// BlockNoteエディタの初期化
 	// initialContentが空またはundefinedの場合はeditorインスタンスを生成する
 	const editor = useMemo(() => {
@@ -116,7 +129,10 @@ const Note: React.FC = () => {
 			return null;
 		}
 
-		return BlockNoteEditor.create({ initialContent }) as BlockNoteEditor;
+		return BlockNoteEditor.create({
+			initialContent,
+			schema,
+		});
 	}, [initialContent]);
 
 	// 更新処理をデバウンスする関数
@@ -289,7 +305,9 @@ const Note: React.FC = () => {
 						editor={editor}
 						onChange={handleContentChange}
 						theme={customTheme}
-					/>
+					>
+						{" "}
+					</BlockNoteView>
 				)}
 			</div>
 		</div>

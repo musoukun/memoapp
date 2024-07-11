@@ -14,10 +14,9 @@ const kanbanApi = {
 
 	getKanban: (id: string): AxiosPromise<Kanban> =>
 		axiosClient.get(`kanban/${id}`),
-
 	update: (
 		id: string,
-		params: { title: string; data: KanbanColumn[] }
+		params: { title: string; icon: string; data: KanbanColumn[] }
 	): AxiosPromise<Kanban> => axiosClient.put(`kanban/${id}`, params),
 
 	delete: (id: string): AxiosPromise<void> =>

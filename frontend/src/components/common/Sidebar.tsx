@@ -14,6 +14,8 @@ import {
 	faPlusSquare,
 	faSignOutAlt,
 	faEllipsisH,
+	faChevronLeft,
+	faChevronRight,
 } from "@fortawesome/free-solid-svg-icons";
 import DropdownMenu from "./DropdownMenu";
 import kanbanApi from "../../api/kanbanApi";
@@ -21,9 +23,14 @@ import { Kanban, KanbanColumn } from "../../types/kanban";
 import { v4 as uuidv4 } from "uuid";
 import { userKanbansAtom } from "../../atoms/kanbanAtom";
 
-const Sidebar = () => {
+interface SidebarProps {
+	onToggle: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({ onToggle }) => {
 	const navigate = useNavigate();
 	const location = useLocation();
+	const [isCollapsed, setIsCollapsed] = useState(false);
 	const user = useRecoilValue(userStateAtom);
 	// ノートの状態を取得
 	const [notes, setNotes] = useRecoilState(notesStateAtom);
@@ -41,6 +48,7 @@ const Sidebar = () => {
 	const [dropdownPosition, setDropdownPosition] = useState({ x: 0, y: 0 });
 	const [userKanbans, setUserKanbans] =
 		useRecoilState<Kanban[]>(userKanbansAtom);
+	// 選択されたノートとカンバンのIDを管理
 	const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
 	const [selectedKanbanId, setSelectedKanbanId] = useState<string | null>(
 		null
@@ -54,6 +62,12 @@ const Sidebar = () => {
 		x: 0,
 		y: 0,
 	});
+
+	// サイドバーの開閉状態を管理
+	const handleToggle = () => {
+		setIsCollapsed(!isCollapsed);
+		onToggle();
+	};
 
 	useEffect(() => {
 		const fetchKanbans = async () => {
@@ -250,7 +264,7 @@ const Sidebar = () => {
 		>
 			<div className="flex items-center justify-between my-2 text-black dark:text-white relative">
 				<Link to={`/kanban/${kanban.id}`} className="flex-grow">
-					{kanban.title}
+					{kanban.icon + kanban.title}
 				</Link>
 				{hoveredKanban === kanban.id && (
 					<button
@@ -280,19 +294,32 @@ const Sidebar = () => {
 
 	return (
 		<>
-			<div className="w-[320px] h-screen bg-white dark:bg-gray-800 flex flex-col overflow-hidden">
-				<div className="flex-shrink-0">
-					<div className="flex items-center justify-between p-4">
-						<span className="text-sm font-bold text-black dark:text-white">
-							{user.username}
-						</span>
-						<button
-							className="text-gray-600 dark:text-gray-400"
-							onClick={logout}
-						>
-							<FontAwesomeIcon icon={faSignOutAlt} />
-						</button>
-					</div>
+			<div
+				className={`bg-white dark:bg-gray-800 h-screen flex flex-col transition-all duration-300 ${isCollapsed ? "w-0" : "w-[320px]"}`}
+			>
+				<div className="flex items-center justify-between p-4">
+					{!isCollapsed && (
+						<>
+							<button
+								className="mr-6 text-gray-600 dark:text-gray-400 text-sm font-bold"
+								onClick={logout}
+							>
+								<FontAwesomeIcon icon={faSignOutAlt} />
+							</button>
+							<span className="text-sm font-bold text-black dark:text-white">
+								{user.username}
+							</span>
+						</>
+					)}
+					<button
+						className="text-gray-600 dark:text-gray-400 ml-auto "
+						onClick={handleToggle}
+					>
+						<FontAwesomeIcon
+							icon={isCollapsed ? faChevronRight : faChevronLeft}
+							style={{ width: "30px", height: "20px" }}
+						/>
+					</button>
 				</div>
 				<div className="flex-grow overflow-y-auto">
 					<ul>

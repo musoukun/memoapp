@@ -1,6 +1,7 @@
 export type Kanban = {
 	id: string;
 	title: string;
+	icon?: string;
 	columns: KanbanColumn[];
 };
 

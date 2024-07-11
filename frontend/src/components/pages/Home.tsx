@@ -1,8 +1,10 @@
 import React from "react";
 import DashboardTitle from "../dashboard/DashboardTitle";
 import RecentAccess from "../dashboard/RecentAccess";
-import WeeklyEvents from "../dashboard/WeeklyEvents";
+
 import MyTasks from "../dashboard/MyTasks";
+import GCalendarIframe from "../common/GCalenderIframe";
+
 interface HomeProps {
 	title: string;
 	recentAccess: Array<{ name: string; time: string }>;
@@ -18,12 +20,12 @@ interface HomeProps {
 	};
 }
 
-const Home: React.FC<HomeProps> = ({ title, events, tasks }) => {
+const Home: React.FC<HomeProps> = ({ title, tasks }) => {
 	return (
 		<div className="dark:bg-gray-800 min-h-screen p-6">
 			<DashboardTitle title={title} />
 			<RecentAccess />
-			<WeeklyEvents events={events} />
+			<GCalendarIframe />
 			<MyTasks tasks={tasks} />
 		</div>
 	);

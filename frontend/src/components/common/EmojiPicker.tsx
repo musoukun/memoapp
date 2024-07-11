@@ -7,6 +7,7 @@ import { Emoji } from "emoji-mart/dist-es/utils/data";
 const EmojiPicker: React.FC<{
 	icon: string;
 	onChange: (emoji: string) => void;
+	size?: number;
 }> = (props) => {
 	const [selectedEmoji, setSelectedEmoji] = useState<string>("");
 	const [isShowPicker, setIsShowPicker] = useState<boolean>(false); // 絵文字ピッカーの表示状態を管理するステート
@@ -44,7 +45,7 @@ const EmojiPicker: React.FC<{
 			<Typography
 				variant="h3"
 				fontWeight={700}
-				sx={{ cursor: "pointer" }}
+				sx={{ cursor: "pointer", fontSize: props.size || 24 }} // sizeプロパティを使用して絵文字の大きさを調整
 				onClick={showPicker}
 			>
 				{selectedEmoji}

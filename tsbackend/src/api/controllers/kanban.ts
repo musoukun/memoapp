@@ -76,13 +76,14 @@ export const getMainKanban = async (req: Request, res: Response) => {
 export const updateKanban = async (req: Request, res: Response) => {
 	try {
 		const { id } = req.params;
-		const { title, data } = req.body;
+		const { title, icon, data } = req.body;
 		const userId = req.user!.id;
 
 		const updatedKanban = await prisma.kanban.update({
 			where: { id, userId },
 			data: {
 				title,
+				icon,
 				columns: data,
 			},
 		});
